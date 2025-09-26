@@ -7,15 +7,15 @@ docname: draft-sheffer-tls-pqc-continuity-latest
 submissiontype: IETF
 consensus: true
 v: 3
-area: Security
-workgroup: "TLS Working Group"
+area: "Security"
+workgroup: "Transport Layer Security"
 keyword:
  - PQC
  - TLS
  - Downgrade Attacks
 venue:
-  github: yaronf/sheffer-tls-pqc-continuity
-  latest: https://example.com/LATEST
+  github: "yaronf/draft-sheffer-tls-pqc-continuity"
+  latest: "https://yaronf.github.io/draft-sheffer-tls-pqc-continuity/draft-sheffer-tls-pqc-continuity.html"
 
 author:
  -

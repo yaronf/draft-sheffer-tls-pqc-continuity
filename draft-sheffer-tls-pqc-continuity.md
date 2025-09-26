@@ -1,21 +1,19 @@
 ---
 title: "PQC Continuity: Downgrade Protection for TLS Servers Migrating to PQC"
 abbrev: "PQC Continuity"
-category: standard
+category: std
 
 docname: draft-sheffer-tls-pqc-continuity-latest
 submissiontype: IETF
 consensus: true
 v: 3
 area: Security
-workgroup: TLS Working Group
+workgroup: "TLS Working Group"
 keyword:
  - PQC
  - TLS
  - Downgrade Attacks
 venue:
-  type: Individual
-  arch: https://example.com/WG
   github: yaronf/sheffer-tls-pqc-continuity
   latest: https://example.com/LATEST
 

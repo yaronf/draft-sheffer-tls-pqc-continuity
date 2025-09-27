@@ -4,8 +4,8 @@
 
 Transport Layer Security                                      Y. Sheffer
 Internet-Draft                                                    Intuit
-Intended status: Standards Track                       26 September 2025
-Expires: 30 March 2026
+Intended status: Standards Track                       27 September 2025
+Expires: 31 March 2026
 
 
  PQC Continuity: Downgrade Protection for TLS Servers Migrating to PQC
@@ -43,7 +43,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 30 March 2026.
+   This Internet-Draft will expire on 31 March 2026.
 
 Copyright Notice
 
@@ -63,93 +63,58 @@ Table of Contents
 
    1.  Introduction
    2.  Conventions and Definitions
-   3.  Migration Scenarios
-     3.1.  Migration Phases
-     3.2.  The pq_cert_available Extension
-       3.2.1.  Extension Definition
-       3.2.2.  Recipient Behavior
-       3.2.3.  Sender Behavior
-       3.2.4.  Operational Considerations
+   3.  The pq_cert_available Extension
+     3.1.  Extension Definition
+     3.2.  Recipient Behavior
+     3.3.  Sender Behavior
+     3.4.  Operational Considerations
    4.  Security Considerations
    5.  IANA Considerations
-   6.  References
-     6.1.  Normative References
-     6.2.  Informative References
    Acknowledgments
+   References
+     Normative References
+     Informative References
+   Appendix A.  Migration Scenarios
+     A.1.  Migration Phases
+   Appendix B.  Comparison with draft-reddy-lamps-x509-pq-commit
    Author's Address
 
 1.  Introduction
 
-   TODO Introduction
+   The migration to post-quantum cryptography (PQC) will be gradual.
+   Servers will likely host both traditional and PQC (or composite)
+   certificates to maintain compatibility: legacy clients can still
+   connect, while updated ones benefit from PQC authentication.  The
+   size of the legacy client base often drives the decision to keep
+   traditional certificates.  Relevant PQC work includes
+   [I-D.ietf-lamps-dilithium-certificates] (ML-DSA),
+   [I-D.ietf-lamps-x509-slhdsa] (SLH-DSA), and
+   [I-D.ietf-lamps-pq-composite-sigs] (composites).  Not only must
+   legacy clients be supported by servers, new clients that support PQC
+   are also incented to accept traditional certificates, so as not to
+   break legacy servers.
 
-2.  Conventions and Definitions
+   Once a cryptographically relevant quantum computer (CRQC) emerges,
+   traditional certificates become insecure and must be revoked,
+   regardless of legacy disruption.  However, a CRQC may remain
+   undisclosed, allowing attackers to exploit classical algorithms
+   secretly.  In such cases, adversaries could strip PQC or composite
+   certificates, present only traditional ones, and conduct MitM
+   attacks.  Relying parties therefore need mechanisms to detect when
+   servers claiming PQC support revert to traditional credentials only.
 
-   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
-   "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
-   "OPTIONAL" in this document are to be interpreted as described in
-   BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
-   capitals, as shown here.
 
-3.  Migration Scenarios
+   // TODO: add reference when published.  There are different ways to
+   ensure that the server's security cannot be downgraded by an
+   attacker.  One, described in I-d.reddy-lamps-x509-pq-commit, uses
+   specially marked certificates to denote the server's long-term
+   commitment to use PQ algorithms.  This document proposes a different
+   way that avoids the dependence on the CA infrastructure.
 
-   This appendix describes a likely migration scenario as different
-   parts of the industry move at different rates from TLS with
-   traditional crypto, into TLS with composite certificates and
-   eventually TLS with "pure" PQ certificates.  We then define a small
-   TLS extension designed to secure TLS connections from rollback
-   attacks during parts of this migration.
-
-3.1.  Migration Phases
-
-   Following we list a likely chronological progression from today’s
-   predominantly classical ecosystem to one using exclusively post-
-   quantum (PQ) certificates.  Based on our collective experience with
-   TLS version migration and the PKI migration from RSA to ECDSA, we
-   expect each phase to be measured in years.
-
-   1.  Most TLS implementations start by adopting hybrid key exchange.
-       As of this writing, the relevant drafts are nearly finalized,
-       making this adoption feasible.  Moreover, there is already good
-       client-side adoption in the open Web.
-
-   2.  Next, composite certificates become available for some portion of
-       the server population.
-
-   3.  Clients start using these certificates, and the common policy is
-       "I would trust a server that presents either a traditional or a
-       composite certificate".
-
-   4.  Once the industry has reached a high percentage of Composite
-       adoption on the client side, and trust in pure PQ is established,
-       servers may begin presenting both Composite and pure PQ
-       certificates.
-
-   5.  Clients can then be configured to reject traditional
-       certificates.
-
-   6.  Finally, as PQ certificate adoption increases on the server side,
-       clients can be configured to accept only pure PQ certificates.
-
-   We expect cryptography-relevant quantum computers (CRQC) to become
-   available, at least in small quantities, sometime during this
-   timeline.  It is likely that early ones will be kept secret by state
-   actors.
-
-   If this happens during phases (3) and (4), clients would be
-   vulnerable to rollback attacks by a CRQC that can generate a fake
-   traditional certificate.  This vulnerability would exist despite the
-   use of hybrid key exchange, and even if the majority of servers have
-   already adopted Composite certificates.  The next section proposes a
-   TLS extension to mitigate this issue.
-
-   We believe that similar migration phases, similar risks and similar
-   mitigations apply to the Dual Certificate scheme.
-
-3.2.  The pq_cert_available Extension
-
-   The extension we define enables the TLS client to cache an indication
-   that the server is able to present a (Composite or pure) PQ
-   certificate, for some duration of time, e.g. one year.  As a result:
+   We define a TLS extension that enables the TLS client to cache an
+   indication that the server is able to present a (Composite or pure)
+   PQ certificate, for some duration of time, e.g. one year.  As a
+   result:
 
    *  Clients that reconnect to an already known server within the
       validity period are protected from rollback to classic
@@ -170,7 +135,26 @@ Table of Contents
    However in other use cases such as service-to-service traffic, it
    would often make sense to use it for both clients and servers.
 
-3.2.1.  Extension Definition
+   Another major difference between this draft and (TODO: I-d.reddy-
+   lamps-x509-pq-commit) is that we rely on local enforcement within the
+   TLS client, possibly augmented by more centralized detection of
+   attacks.  The alternative proposal assumes a detection
+   infrastructure, coupled with certificate revocation, before the
+   client can drop a malicious connection.
+
+2.  Conventions and Definitions
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+   "OPTIONAL" in this document are to be interpreted as described in
+   BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
+   capitals, as shown here.
+
+3.  The pq_cert_available Extension
+
+   The following section defines the extension in detail.
+
+3.1.  Extension Definition
 
    This is a TLS extension, as per sec. 4.2 of [RFC8446].  The extension
    type for pq_cert_available is TBD by IANA.
@@ -214,7 +198,7 @@ Table of Contents
    starting with the TLS handshake and is unrelated to any particular
    certificate or its lifecycle.
 
-3.2.2.  Recipient Behavior
+3.2.  Recipient Behavior
 
    A recipient that supports this extension MUST behave as follows:
 
@@ -263,7 +247,7 @@ Table of Contents
    OPEN ISSUE: do we discuss how the cache is indexed?  Service identity
    per RFC 9525?
 
-3.2.3.  Sender Behavior
+3.3.  Sender Behavior
 
    1.  A TLS client or server that receives indication that its peer
        supports this extension SHOULD send this extension in the
@@ -275,7 +259,7 @@ Table of Contents
        switch between PQ signature algorithms at will, as long as the
        peer indicates acceptance of these algorithms.
 
-3.2.4.  Operational Considerations
+3.4.  Operational Considerations
 
    This extension establishes a (potentially) long-term commitment of
    the sender to support PQ signature algorithms.  As such, we recommend
@@ -292,9 +276,13 @@ Table of Contents
 
    This document has no IANA actions.
 
-6.  References
+Acknowledgments
 
-6.1.  Normative References
+   TODO acknowledge.
+
+References
+
+Normative References
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
@@ -309,16 +297,121 @@ Table of Contents
               Version 1.3", RFC 8446, DOI 10.17487/RFC8446, August 2018,
               <https://www.rfc-editor.org/rfc/rfc8446>.
 
-6.2.  Informative References
+Informative References
+
+   [I-D.ietf-lamps-dilithium-certificates]
+              Massimo, J., Kampanakis, P., Turner, S., and B.
+              Westerbaan, "Internet X.509 Public Key Infrastructure -
+              Algorithm Identifiers for the Module-Lattice-Based Digital
+              Signature Algorithm (ML-DSA)", Work in Progress, Internet-
+              Draft, draft-ietf-lamps-dilithium-certificates-12, 26 June
+              2025, <https://datatracker.ietf.org/doc/html/draft-ietf-
+              lamps-dilithium-certificates-12>.
+
+   [I-D.ietf-lamps-pq-composite-sigs]
+              Ounsworth, M., Gray, J., Pala, M., Klaußner, J., and S.
+              Fluhrer, "Composite ML-DSA for use in X.509 Public Key
+              Infrastructure", Work in Progress, Internet-Draft, draft-
+              ietf-lamps-pq-composite-sigs-08, 20 September 2025,
+              <https://datatracker.ietf.org/doc/html/draft-ietf-lamps-
+              pq-composite-sigs-08>.
+
+   [I-D.ietf-lamps-x509-slhdsa]
+              Bashiri, K., Fluhrer, S., Gazdag, S., Van Geest, D., and
+              S. Kousidis, "Internet X.509 Public Key Infrastructure:
+              Algorithm Identifiers for SLH-DSA", Work in Progress,
+              Internet-Draft, draft-ietf-lamps-x509-slhdsa-09, 30 June
+              2025, <https://datatracker.ietf.org/doc/html/draft-ietf-
+              lamps-x509-slhdsa-09>.
 
    [RFC6797]  Hodges, J., Jackson, C., and A. Barth, "HTTP Strict
               Transport Security (HSTS)", RFC 6797,
               DOI 10.17487/RFC6797, November 2012,
               <https://www.rfc-editor.org/rfc/rfc6797>.
 
-Acknowledgments
+Appendix A.  Migration Scenarios
 
-   TODO acknowledge.
+   This appendix describes a likely migration scenario as different
+   parts of the industry move at different rates from TLS with
+   traditional crypto, into TLS with composite certificates and
+   eventually TLS with "pure" PQ certificates.  We then define a small
+   TLS extension designed to secure TLS connections from rollback
+   attacks during parts of this migration.
+
+A.1.  Migration Phases
+
+   Following we list a likely chronological progression from today’s
+   predominantly classical ecosystem to one using exclusively post-
+   quantum (PQ) certificates.  Based on our collective experience with
+   TLS version migration and the PKI migration from RSA to ECDSA, we
+   expect each phase to be measured in years.
+
+   1.  Most TLS implementations start by adopting hybrid key exchange.
+       As of this writing, the relevant drafts are nearly finalized,
+       making this adoption feasible.  Moreover, there is already good
+       client-side adoption in the open Web.
+
+   2.  Next, composite certificates become available for some portion of
+       the server population.
+
+   3.  Clients start using these certificates, and the common policy is
+       "I would trust a server that presents either a traditional or a
+       composite certificate".
+
+   4.  Once the industry has reached a high percentage of Composite
+       adoption on the client side, and trust in pure PQ is established,
+       servers may begin presenting both Composite and pure PQ
+       certificates.
+
+   5.  Clients can then be configured to reject traditional
+       certificates.
+
+   6.  Finally, as PQ certificate adoption increases on the server side,
+       clients can be configured to accept only pure PQ certificates.
+
+   We expect cryptography-relevant quantum computers (CRQC) to become
+   available, at least in small quantities, sometime during this
+   timeline.  It is likely that early ones will be kept secret by state
+   actors.
+
+   If this happens during phases (3) and (4), clients would be
+   vulnerable to rollback attacks by a CRQC that can generate a fake
+   traditional certificate.  This vulnerability would exist despite the
+   use of hybrid key exchange, and even if the majority of servers have
+   already adopted Composite certificates.  The next section proposes a
+   TLS extension to mitigate this issue.
+
+   We believe that similar migration phases, similar risks and similar
+   mitigations apply to the Dual Certificate scheme.
+
+Appendix B.  Comparison with draft-reddy-lamps-x509-pq-commit
+
+   *  draft-reddy does not change the TLS handshake, which potentially
+      makes adoption easier.  However, changes to the Web Public Key
+      Infrastructure would also affect adoption.
+
+   *  Draft-reddy is independent of TLS and thus can be used by other
+      protocols.
+
+   *  Operationally, it is arguably harder to manage the “commitment”
+      through certificates vs. TLS configuration.  For example, in the
+      HSTS space it is common to experiment first with very short
+      durations, e.g. 1 day, before moving to a longer commitment.  This
+      could have a significant effect on real-life adoption.
+
+   *  Unlike the current draft, draft-reddy does not allow the TLS
+      client to refuse a connection if it goes contrary to the server's
+      commitment.  The expectation is for an operational center
+      (realistically, one managed by the browser vendor) to observe
+      large scale events where multiple client see such behavior and
+      only then react to the situation.  This means that detection is
+      slow, possibly measured in days, and that small-scale, targetted
+      attacks are likely to remain under the radar.
+
+   *  The revocation checking aspect of the solution relies upon other
+      mechanisms (e.g. CRLs, OCSP) to also be signed with PQC/Composite.
+      Those other RFCs and implementations are likely to take even
+      longer to materialize.
 
 Author's Address
 

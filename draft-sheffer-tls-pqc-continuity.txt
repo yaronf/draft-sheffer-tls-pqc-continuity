@@ -13,7 +13,21 @@ Expires: 31 March 2026
 
 Abstract
 
-   TODO Abstract
+   As the Internet transitions toward post-quantum cryptography (PQC),
+   many TLS servers will continue supporting traditional (pre-quantum)
+   certificates to maintain compatibility with legacy clients.  However,
+   this coexistence introduces a significant vulnerability: an
+   undetected rollback attack, where a malicious actor strips the PQC or
+   Composite certificate and forces the inevitable use of a classical
+   certificate once quantum-capable adversaries exist.  To defend
+   against this, we propose a TLS extension which enables a client to
+   cache and enforce a commitment by the server to present a PQ-capable
+   certificate for a specified validity period.  On subsequent
+   connections, the client will refuse to accept a server’s classical-
+   only certificate if it conflicts with its cached promise.  This
+   mechanism, inspired by HTTP’s HSTS but operating at the TLS layer,
+   provides downgrade protection without requiring changes to the CA
+   infrastructure.
 
 About This Document
 
@@ -159,16 +173,15 @@ Table of Contents
    This is a TLS extension, as per sec. 4.2 of [RFC8446].  The extension
    type for pq_cert_available is TBD by IANA.
 
-   It MAY appear in the Client Hello (CH) and Certificate (CT) messages
+   It MAY appear in the ClientHello (CH) and Certificate (CT) messages
    sent by either client or server.
 
-   A client that supports this extension MUST send it in Client Hello,
-   with an empty extension data.
+   A supporting client MUST include this extension in its ClientHello
+   message, with no extension data.
 
-   Once a client asserted its support, the server MAY include the
-   extension along with the certificate it presents.  A client MUST NOT
-   use this extension in the Certificate message if the server did not
-   include it in its own Certificate message.
+   If the client indicates support, the server MAY include the extension
+   in its Certificate message.  A client MUST NOT include this extension
+   in its Certificate message unless the server has first included it.
 
    The extension data when sent in the Certificate message is:
 
@@ -185,7 +198,7 @@ Table of Contents
    and server, in the following text we will use the term "sender" for
    the peer that sent the extension in its Certificate message and
    "recipient" for the other peer.  We use signature_algorithm for the
-   respective extension sent in the Client Hello message or for the
+   respective extension sent in the ClientHello message or for the
    equivalent extension sent within the server's CertificateRequest
    message.
 

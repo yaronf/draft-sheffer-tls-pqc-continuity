@@ -30,8 +30,18 @@ informative:
 
 --- abstract
 
-TODO Abstract
-
+As the Internet transitions toward post-quantum cryptography (PQC), many TLS servers will continue supporting
+traditional (pre-quantum) certificates to maintain compatibility with legacy clients. However, this
+coexistence introduces a significant vulnerability: an undetected rollback attack, where a malicious
+actor strips the PQC or Composite certificate and forces the inevitable use of a classical certificate once
+quantum-capable adversaries exist. To defend against this, we propose a TLS
+extension which enables a client to cache and enforce a
+commitment by the server to present a PQ-capable certificate for a specified
+validity period. On subsequent connections, the client will refuse to accept a
+server’s classical-only certificate if it conflicts with its cached promise.
+This mechanism, inspired by HTTP’s HSTS but operating at the TLS layer,
+provides downgrade protection without requiring changes to the CA
+infrastructure.
 
 --- middle
 
@@ -93,11 +103,12 @@ The following section defines the extension in detail.
 
 This is a TLS extension, as per sec. 4.2 of {{!RFC8446}}. The extension type for `pq_cert_available` is TBD by IANA.
 
-It MAY appear in the Client Hello (CH) and Certificate (CT) messages sent by either client or server.
+It MAY appear in the ClientHello (CH) and Certificate (CT) messages sent by either client or server.
 
-A client that supports this extension MUST send it in Client Hello, with an empty extension data.
+A supporting client MUST include this extension in its ClientHello message, with no extension data.
 
-Once a client asserted its support, the server MAY include the extension along with the certificate it presents. A client MUST NOT use this extension in the Certificate message if the server did not include it in its own Certificate message.
+If the client indicates support, the server MAY include the extension in its Certificate message.
+A client MUST NOT include this extension in its Certificate message unless the server has first included it.
 
 The extension data when sent in the Certificate message is:
 
@@ -108,13 +119,24 @@ struct {
 }
 ~~~
 
-For symmetry, a server MAY send an empty `pq_cert_available` extension in its Certificate message to signal support for this mechanism, even if no signature algorithm or duration is specified.
+For symmetry, a server MAY send an empty `pq_cert_available` extension in its
+Certificate message to signal support for this mechanism, even if no signature
+algorithm or duration is specified.
 
-Note on terminology: Since the extension can be sent by both client and server, in the following text we will use the term "sender" for the peer that sent the extension in its Certificate message and "recipient" for the other peer. We use `signature_algorithm` for the respective extension sent in the Client Hello message or for the equivalent extension sent within the server's CertificateRequest message.
+Note on terminology: Since the extension can be sent by both client and server,
+in the following text we will use the term "sender" for the peer that sent the
+extension in its Certificate message and "recipient" for the other peer. We use
+`signature_algorithm` for the respective extension sent in the ClientHello
+message or for the equivalent extension sent within the server's
+CertificateRequest message.
 
-The `signature_algorithm` in this extension MUST be the signature algorithm that the sender's certificate is associated with.
+The `signature_algorithm` in this extension MUST be the signature algorithm
+that the sender's certificate is associated with.
 
-The `algorithm_validity` field is the time duration, in seconds, that the sender commits to continue to present a certificate that addresses this signature scheme. The time duration is measured starting with the TLS handshake and is unrelated to any particular certificate or its lifecycle.
+The `algorithm_validity` field is the time duration, in seconds, that the
+sender commits to continue to present a certificate that addresses this
+signature scheme. The time duration is measured starting with the TLS handshake
+and is unrelated to any particular certificate or its lifecycle.
 
 ## Recipient Behavior
 
@@ -122,33 +144,52 @@ A recipient that supports this extension MUST behave as follows:
 
 1. If the recipient holds no cached information for the sender, and the sender includes it:
 
-   * The recipient SHOULD cache the provided information after the handshake is completed successfully and after the extension's data has been validated.
+   * The recipient SHOULD cache the provided information after the handshake is
+     completed successfully and after the extension's data has been validated.
    * The recipient MAY choose to cache the signature algorithm for a shorter period than specified.
 
 2. If the recipient holds unexpired cached information for the sender:
 
    * The recipient SHOULD include the cached algorithm in its `signature_algorithms` list.
    * It MAY include other PQ signature algorithms.
-   * Most importantly, it MUST abort the handshake if the sender does not present a certificate associated with one of the requested algorithms.
+   * Most importantly, it MUST abort the handshake if the sender does not
+     present a certificate associated with one of the requested algorithms.
 
 3. If the recipient holds unexpired cached information for the sender, and receives a returned extension from the sender:
 
-   * The recipient should validate the `signature_algorithm` relative to the certificate being presented and SHOULD extend its cache period if the received time value would expire later than its current cache expiry.
-   * It SHOULD NOT accept an `algorithm_validity` value if it would decrease its existing value (within a few seconds' tolerance).
-   * It SHOULD replace its cached signature algorithm for the sender by a different PQ algorithm is such is sent in the extension, and in this case, it SHOULD use the validity time as-is.
+   * The recipient should validate the `signature_algorithm` relative to the
+     certificate being presented and SHOULD extend its cache period if the
+     received time value would expire later than its current cache expiry.
+   * It SHOULD NOT accept an `algorithm_validity` value if it would decrease
+     its existing value (within a few seconds' tolerance).
+   * It SHOULD replace its cached signature algorithm for the sender by a
+     different PQ algorithm is such is sent in the extension, and in this case,
+it SHOULD use the validity time as-is.
 
-4. If the recipient holds unexpired cached information for the sender, and receives no returned extension from the sender, the recipient SHOULD NOT modify its cache.
+4. If the recipient holds unexpired cached information for the sender, and
+   receives no returned extension from the sender, the recipient SHOULD NOT
+modify its cache.
 
 OPEN ISSUE: do we discuss how the cache is indexed? Service identity per RFC 9525?
 
 ## Sender Behavior
 
-1. A TLS client or server that receives indication that its peer supports this extension SHOULD send this extension in the Certificate message, provided a PQ signature algorithm is used.
-2. The sender MUST keep track of the time duration it has committed to, and use a PQ certificate to authenticate itself for that entire duration. The sender MAY change its certificates and may switch between PQ signature algorithms at will, as long as the peer indicates acceptance of these algorithms.
+1. A TLS client or server that receives indication that its peer supports this
+   extension SHOULD send this extension in the Certificate message, provided a
+PQ signature algorithm is used.
+2. The sender MUST keep track of the time duration it has committed to, and use
+   a PQ certificate to authenticate itself for that entire duration. The sender
+MAY change its certificates and may switch between PQ signature algorithms at
+will, as long as the peer indicates acceptance of these algorithms.
 
 ## Operational Considerations
 
-This extension establishes a (potentially) long-term commitment of the sender to support PQ signature algorithms. As such, we recommend that deployers first experiment with short validity periods (e.g. one day), and only when satisfied that peers populate and depopulate their cache correctly, can move to a longer duration. In the case of HSTS, the industry has settled on 1 year as a common value.
+This extension establishes a (potentially) long-term commitment of the sender
+to support PQ signature algorithms. As such, we recommend that deployers first
+experiment with short validity periods (e.g. one day), and only when satisfied
+that peers populate and depopulate their cache correctly, can move to a longer
+duration. In the case of HSTS, the industry has settled on 1 year as a common
+value.
 
 # Security Considerations
 
@@ -169,24 +210,45 @@ TODO acknowledge.
 
 # Migration Scenarios
 
-This appendix describes a likely migration scenario as different parts of the industry move at different rates from TLS with traditional crypto, into TLS with composite certificates and eventually TLS with "pure" PQ certificates. We then define a small TLS extension designed to secure TLS connections from rollback attacks during parts of this migration.
+This appendix describes a likely migration scenario as different parts of the
+industry move at different rates from TLS with traditional crypto, into TLS
+with composite certificates and eventually TLS with "pure" PQ certificates. We
+then define a small TLS extension designed to secure TLS connections from
+rollback attacks during parts of this migration.
 
 ## Migration Phases
 
-Following we list a likely chronological progression from today’s predominantly classical ecosystem to one using exclusively post-quantum (PQ) certificates. Based on our collective experience with TLS version migration and the PKI migration from RSA to ECDSA, we expect each phase to be measured in years.
+Following we list a likely chronological progression from today’s predominantly
+classical ecosystem to one using exclusively post-quantum (PQ) certificates.
+Based on our collective experience with TLS version migration and the PKI
+migration from RSA to ECDSA, we expect each phase to be measured in years.
 
-1. Most TLS implementations start by adopting hybrid key exchange. As of this writing, the relevant drafts are nearly finalized, making this adoption feasible. Moreover, there is already good client-side adoption in the open Web.
+1. Most TLS implementations start by adopting hybrid key exchange. As of this
+   writing, the relevant drafts are nearly finalized, making this adoption
+feasible. Moreover, there is already good client-side adoption in the open Web.
 2. Next, composite certificates become available for some portion of the server population.
-3. Clients start using these certificates, and the common policy is "I would trust a server that presents either a traditional or a composite certificate".
-4. Once the industry has reached a high percentage of Composite adoption on the client side, and trust in pure PQ is established, servers may begin presenting both Composite and pure PQ certificates.
+3. Clients start using these certificates, and the common policy is "I would
+   trust a server that presents either a traditional or a composite
+certificate".
+4. Once the industry has reached a high percentage of Composite adoption on the
+   client side, and trust in pure PQ is established, servers may begin
+presenting both Composite and pure PQ certificates.
 5. Clients can then be configured to reject traditional certificates.
-6. Finally, as PQ certificate adoption increases on the server side, clients can be configured to accept only pure PQ certificates.
+6. Finally, as PQ certificate adoption increases on the server side, clients
+   can be configured to accept only pure PQ certificates.
 
-We expect cryptography-relevant quantum computers (CRQC) to become available, at least in small quantities, sometime during this timeline. It is likely that early ones will be kept secret by state actors.
+We expect cryptography-relevant quantum computers (CRQC) to become available,
+at least in small quantities, sometime during this timeline. It is likely that
+early ones will be kept secret by state actors.
 
-If this happens during phases (3) and (4), clients would be vulnerable to rollback attacks by a CRQC that can generate a fake traditional certificate. This vulnerability would exist despite the use of hybrid key exchange, and even if the majority of servers have already adopted Composite certificates. The next section proposes a TLS extension to mitigate this issue.
+If this happens during phases (3) and (4), clients would be vulnerable to
+rollback attacks by a CRQC that can generate a fake traditional certificate.
+This vulnerability would exist despite the use of hybrid key exchange, and even
+if the majority of servers have already adopted Composite certificates. The
+next section proposes a TLS extension to mitigate this issue.
 
-We believe that similar migration phases, similar risks and similar mitigations apply to the Dual Certificate scheme.
+We believe that similar migration phases, similar risks and similar mitigations
+apply to the Dual Certificate scheme.
 
 # Comparison with draft-reddy-lamps-x509-pq-commit
 
@@ -201,4 +263,6 @@ contrary to the server's commitment. The expectation is for an operational cente
 by the browser vendor) to observe large scale events where multiple client see such behavior and only then react
 to the situation. This means that detection is slow, possibly measured in days, and that small-scale, targetted
 attacks are likely to remain under the radar.
-* The revocation checking aspect of the solution relies upon other mechanisms (e.g. CRLs, OCSP) to also be signed with PQC/Composite. Those other RFCs and implementations are likely to take even longer to materialize.
+* The revocation checking aspect of the solution relies upon other mechanisms
+  (e.g. CRLs, OCSP) to also be signed with PQC/Composite. Those other RFCs and
+implementations are likely to take even longer to materialize.

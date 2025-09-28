@@ -4,8 +4,8 @@
 
 Transport Layer Security                                      Y. Sheffer
 Internet-Draft                                                    Intuit
-Intended status: Standards Track                       27 September 2025
-Expires: 31 March 2026
+Intended status: Standards Track                       28 September 2025
+Expires: 1 April 2026
 
 
  PQC Continuity: Downgrade Protection for TLS Servers Migrating to PQC
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 31 March 2026.
+   This Internet-Draft will expire on 1 April 2026.
 
 Copyright Notice
 
@@ -104,31 +104,23 @@ Table of Contents
    [I-D.ietf-lamps-dilithium-certificates] (ML-DSA),
    [I-D.ietf-lamps-x509-slhdsa] (SLH-DSA), and
    [I-D.ietf-lamps-pq-composite-sigs] (composites).  Not only must
-   legacy clients be supported by servers, new clients that support PQC
-   are also incented to accept traditional certificates, so as not to
-   break legacy servers.
+   legacy clients be supported by servers for years, new clients that
+   support PQC are also incented to accept traditional certificates, to
+   retain connectivity to legacy servers.
 
-   Once a cryptographically relevant quantum computer (CRQC) emerges,
-   traditional certificates become insecure and must be revoked,
-   regardless of legacy disruption.  However, a CRQC may remain
+   Once a cryptographically relevant quantum computer (CRQC) emerges
+   publicly, traditional certificates become insecure and must be
+   revoked, regardless of legacy disruption.  However, a CRQC may remain
    undisclosed, allowing attackers to exploit classical algorithms
    secretly.  In such cases, adversaries could strip PQC or composite
    certificates, present only traditional ones, and conduct MitM
    attacks.  Relying parties therefore need mechanisms to detect when
    servers claiming PQC support revert to traditional credentials only.
 
-
-   // TODO: add reference when published.  There are different ways to
-   ensure that the server's security cannot be downgraded by an
-   attacker.  One, described in I-d.reddy-lamps-x509-pq-commit, uses
-   specially marked certificates to denote the server's long-term
-   commitment to use PQ algorithms.  This document proposes a different
-   way that avoids the dependence on the CA infrastructure.
-
-   We define a TLS extension that enables the TLS client to cache an
-   indication that the server is able to present a (Composite or pure)
-   PQ certificate, for some duration of time, e.g. one year.  As a
-   result:
+   To prevent such downgrade attacks, we define a TLS extension that
+   enables the TLS client to cache an indication that the server is able
+   to present a (Composite or pure) PQ certificate, for some duration of
+   time, e.g. one year.  As a result:
 
    *  Clients that reconnect to an already known server within the
       validity period are protected from rollback to classic
@@ -149,12 +141,12 @@ Table of Contents
    However in other use cases such as service-to-service traffic, it
    would often make sense to use it for both clients and servers.
 
-   Another major difference between this draft and (TODO: I-d.reddy-
-   lamps-x509-pq-commit) is that we rely on local enforcement within the
-   TLS client, possibly augmented by more centralized detection of
-   attacks.  The alternative proposal assumes a detection
-   infrastructure, coupled with certificate revocation, before the
-   client can drop a malicious connection.
+
+   // TODO: add reference when published.  An alternative approach to
+   downgrade attacks, described in I-d.reddy-lamps-x509-pq-commit, uses
+   specially marked certificates to denote the server's long-term
+   commitment to use PQ algorithms.  See Appendix B for a comparison
+   between the two approaches.
 
 2.  Conventions and Definitions
 
@@ -287,7 +279,7 @@ Table of Contents
 
 5.  IANA Considerations
 
-   This document has no IANA actions.
+   TODO: pq_cert_available extension.
 
 Acknowledgments
 
@@ -347,9 +339,7 @@ Appendix A.  Migration Scenarios
    This appendix describes a likely migration scenario as different
    parts of the industry move at different rates from TLS with
    traditional crypto, into TLS with composite certificates and
-   eventually TLS with "pure" PQ certificates.  We then define a small
-   TLS extension designed to secure TLS connections from rollback
-   attacks during parts of this migration.
+   eventually TLS with "pure" PQ certificates.
 
 A.1.  Migration Phases
 
@@ -391,15 +381,16 @@ A.1.  Migration Phases
    vulnerable to rollback attacks by a CRQC that can generate a fake
    traditional certificate.  This vulnerability would exist despite the
    use of hybrid key exchange, and even if the majority of servers have
-   already adopted Composite certificates.  The next section proposes a
-   TLS extension to mitigate this issue.
+   already adopted Composite certificates.  The solution described in
+   this document, as well as the certificate-based alternative approach,
+   both address this risk.
 
    We believe that similar migration phases, similar risks and similar
    mitigations apply to the Dual Certificate scheme.
 
 Appendix B.  Comparison with draft-reddy-lamps-x509-pq-commit
 
-   *  draft-reddy does not change the TLS handshake, which potentially
+   *  Draft-reddy does not change the TLS handshake, which potentially
       makes adoption easier.  However, changes to the Web Public Key
       Infrastructure would also affect adoption.
 
@@ -412,19 +403,10 @@ Appendix B.  Comparison with draft-reddy-lamps-x509-pq-commit
       durations, e.g. 1 day, before moving to a longer commitment.  This
       could have a significant effect on real-life adoption.
 
-   *  Unlike the current draft, draft-reddy does not allow the TLS
-      client to refuse a connection if it goes contrary to the server's
-      commitment.  The expectation is for an operational center
-      (realistically, one managed by the browser vendor) to observe
-      large scale events where multiple client see such behavior and
-      only then react to the situation.  This means that detection is
-      slow, possibly measured in days, and that small-scale, targetted
-      attacks are likely to remain under the radar.
-
-   *  The revocation checking aspect of the solution relies upon other
-      mechanisms (e.g. CRLs, OCSP) to also be signed with PQC/Composite.
-      Those other RFCs and implementations are likely to take even
-      longer to materialize.
+   *  The revocation checking aspect of the certificate-based solution
+      relies upon other mechanisms (e.g. CRLs, OCSP) to also be signed
+      with PQC/Composite.  Those other RFCs and implementations are
+      likely to take even longer to materialize.
 
 Author's Address
 

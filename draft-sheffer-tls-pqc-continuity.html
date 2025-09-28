@@ -1061,7 +1061,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Sheffer</td>
-<td class="center">Expires 31 March 2026</td>
+<td class="center">Expires 1 April 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1074,12 +1074,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-sheffer-tls-pqc-continuity-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2025-09-27" class="published">27 September 2025</time>
+<time datetime="2025-09-28" class="published">28 September 2025</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-03-31">31 March 2026</time></dd>
+<dd class="expires"><time datetime="2026-04-01">1 April 2026</time></dd>
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
 <div class="author">
@@ -1135,7 +1135,7 @@ infrastructure.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 31 March 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 1 April 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1230,46 +1230,46 @@ infrastructure.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
       <h2 id="name-introduction">
 <a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
       </h2>
-<p id="section-1-1">The migration to post-quantum cryptography (PQC) will be gradual. Servers will likely host both
-traditional and PQC (or composite) certificates to maintain compatibility: legacy clients can still connect,
-while updated ones benefit from PQC authentication. The size of the legacy client base often drives the decision to
-keep traditional certificates. Relevant PQC work includes <span>[<a href="#I-D.ietf-lamps-dilithium-certificates" class="cite xref">I-D.ietf-lamps-dilithium-certificates</a>]</span> (ML-DSA),
-<span>[<a href="#I-D.ietf-lamps-x509-slhdsa" class="cite xref">I-D.ietf-lamps-x509-slhdsa</a>]</span> (SLH-DSA), and <span>[<a href="#I-D.ietf-lamps-pq-composite-sigs" class="cite xref">I-D.ietf-lamps-pq-composite-sigs</a>]</span> (composites).
-Not only must legacy clients be supported by servers, new clients that support PQC are also incented
-to accept traditional certificates, so as not to break legacy servers.<a href="#section-1-1" class="pilcrow">¶</a></p>
-<p id="section-1-2">Once a cryptographically relevant quantum computer (CRQC) emerges, traditional certificates become insecure
+<p id="section-1-1">The migration to post-quantum cryptography (PQC) will be gradual. Servers will
+likely host both traditional and PQC (or composite) certificates to maintain
+compatibility: legacy clients can still connect, while updated ones benefit
+from PQC authentication. The size of the legacy client base often drives the
+decision to keep traditional certificates. Relevant PQC work includes
+<span>[<a href="#I-D.ietf-lamps-dilithium-certificates" class="cite xref">I-D.ietf-lamps-dilithium-certificates</a>]</span> (ML-DSA),
+<span>[<a href="#I-D.ietf-lamps-x509-slhdsa" class="cite xref">I-D.ietf-lamps-x509-slhdsa</a>]</span> (SLH-DSA), and
+<span>[<a href="#I-D.ietf-lamps-pq-composite-sigs" class="cite xref">I-D.ietf-lamps-pq-composite-sigs</a>]</span> (composites).  Not only must legacy
+clients be supported by servers for years, new clients that support PQC are
+also incented to accept traditional certificates, to retain connectivity to
+legacy servers.<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-2">Once a cryptographically relevant quantum computer (CRQC) emerges publicly,
+traditional certificates become insecure
 and must be revoked, regardless of legacy disruption. However, a CRQC may remain undisclosed, allowing
 attackers to exploit classical algorithms secretly. In such cases, adversaries could strip PQC or composite
 certificates, present only traditional ones, and conduct MitM attacks. Relying parties therefore need
 mechanisms to detect when servers claiming PQC support revert to traditional credentials only.<a href="#section-1-2" class="pilcrow">¶</a></p>
-<p id="section-1-3"><span class="cref">TODO: add reference when published.</span>
-There are different ways to ensure that the server's security cannot be
-downgraded by an attacker. One, described in I-d.reddy-lamps-x509-pq-commit,
-uses specially marked certificates to denote the server's long-term commitment
-to use PQ algorithms. This document proposes a different way that avoids
-the dependence on the CA infrastructure.<a href="#section-1-3" class="pilcrow">¶</a></p>
-<p id="section-1-4">We define a TLS extension that enables the TLS client to cache an indication that the server is able to
-present a (Composite or pure) PQ certificate, for some duration of time, e.g. one year. As a result:<a href="#section-1-4" class="pilcrow">¶</a></p>
+<p id="section-1-3">To prevent such downgrade attacks, we define a TLS extension that enables the
+TLS client to cache an indication that the server is able to
+present a (Composite or pure) PQ certificate, for some duration of time, e.g. one year. As a result:<a href="#section-1-3" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1-5.1">
-          <p id="section-1-5.1.1">Clients that reconnect to an already known server within the validity period are protected
-from rollback to classic certificates.<a href="#section-1-5.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-1-4.1">
+          <p id="section-1-4.1.1">Clients that reconnect to an already known server within the validity period are protected
+from rollback to classic certificates.<a href="#section-1-4.1.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-1-5.2">
-          <p id="section-1-5.2.1">"New" clients are protected as soon as they connect to a server that is not fronted by a MITM attacker.<a href="#section-1-5.2.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-1-4.2">
+          <p id="section-1-4.2.1">"New" clients are protected as soon as they connect to a server that is not fronted by a MITM attacker.<a href="#section-1-4.2.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-1-6">The explicitly communicated caching time allows clients to implement a caching policy with no risk of sudden
-breakage, and allows servers to revert to classic certificates if they ever see the need to do so.<a href="#section-1-6" class="pilcrow">¶</a></p>
-<p id="section-1-7">This extension is modeled on HSTS <span>[<a href="#RFC6797" class="cite xref">RFC6797</a>]</span>, but whereas HSTS is at the HTTP layer, our extension
-is implemented at the TLS layer.<a href="#section-1-7" class="pilcrow">¶</a></p>
-<p id="section-1-8">On the open Web, we expect this extension to be used mainly for caching the fact that a server is
+<p id="section-1-5">The explicitly communicated caching time allows clients to implement a caching policy with no risk of sudden
+breakage, and allows servers to revert to classic certificates if they ever see the need to do so.<a href="#section-1-5" class="pilcrow">¶</a></p>
+<p id="section-1-6">This extension is modeled on HSTS <span>[<a href="#RFC6797" class="cite xref">RFC6797</a>]</span>, but whereas HSTS is at the HTTP layer, our extension
+is implemented at the TLS layer.<a href="#section-1-6" class="pilcrow">¶</a></p>
+<p id="section-1-7">On the open Web, we expect this extension to be used mainly for caching the fact that a server is
 presenting a PQ certificate. However in other use cases such as service-to-service traffic,
-it would often make sense to use it for both clients and servers.<a href="#section-1-8" class="pilcrow">¶</a></p>
-<p id="section-1-9">Another major difference between this draft and (TODO: I-d.reddy-lamps-x509-pq-commit) is that we
-rely on local enforcement within the TLS client, possibly augmented by more centralized detection
-of attacks. The alternative proposal assumes a detection infrastructure, coupled with certificate
-revocation, before the client can drop a malicious connection.<a href="#section-1-9" class="pilcrow">¶</a></p>
+it would often make sense to use it for both clients and servers.<a href="#section-1-7" class="pilcrow">¶</a></p>
+<p id="section-1-8"><span class="cref">TODO: add reference when published.</span>
+An alternative approach to downgrade attacks, described in I-d.reddy-lamps-x509-pq-commit,
+uses specially marked certificates to denote the server's long-term commitment
+to use PQ algorithms. See <a href="#solution-comparison" class="auto internal xref">Appendix B</a> for a comparison between the two approaches.<a href="#section-1-8" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="conventions-and-definitions">
@@ -1435,7 +1435,7 @@ value.<a href="#section-3.4-1" class="pilcrow">¶</a></p>
       <h2 id="name-iana-considerations">
 <a href="#section-5" class="section-number selfRef">5. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
       </h2>
-<p id="section-5-1">This document has no IANA actions.<a href="#section-5-1" class="pilcrow">¶</a></p>
+<p id="section-5-1">TODO: <code>pq_cert_available</code> extension.<a href="#section-5-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="acknowledgments">
@@ -1506,9 +1506,7 @@ value.<a href="#section-3.4-1" class="pilcrow">¶</a></p>
       </h2>
 <p id="appendix-A-1">This appendix describes a likely migration scenario as different parts of the
 industry move at different rates from TLS with traditional crypto, into TLS
-with composite certificates and eventually TLS with "pure" PQ certificates. We
-then define a small TLS extension designed to secure TLS connections from
-rollback attacks during parts of this migration.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
+with composite certificates and eventually TLS with "pure" PQ certificates.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
 <div id="migration-phases">
 <section id="appendix-A.1">
         <h3 id="name-migration-phases">
@@ -1552,21 +1550,22 @@ early ones will be kept secret by state actors.<a href="#appendix-A.1-3" class="
 rollback attacks by a CRQC that can generate a fake traditional certificate.
 This vulnerability would exist despite the use of hybrid key exchange, and even
 if the majority of servers have already adopted Composite certificates. The
-next section proposes a TLS extension to mitigate this issue.<a href="#appendix-A.1-4" class="pilcrow">¶</a></p>
+solution described in this document, as well as the certificate-based alternative
+approach, both address this risk.<a href="#appendix-A.1-4" class="pilcrow">¶</a></p>
 <p id="appendix-A.1-5">We believe that similar migration phases, similar risks and similar mitigations
 apply to the Dual Certificate scheme.<a href="#appendix-A.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
 </div>
-<div id="comparison-with-draft-reddy-lamps-x509-pq-commit">
+<div id="solution-comparison">
 <section id="appendix-B">
       <h2 id="name-comparison-with-draft-reddy">
 <a href="#appendix-B" class="section-number selfRef">Appendix B. </a><a href="#name-comparison-with-draft-reddy" class="section-name selfRef">Comparison with draft-reddy-lamps-x509-pq-commit</a>
       </h2>
 <ul class="normal">
 <li class="normal" id="appendix-B-1.1">
-          <p id="appendix-B-1.1.1">draft-reddy does not change the TLS handshake, which potentially makes adoption easier. However, changes
+          <p id="appendix-B-1.1.1">Draft-reddy does not change the TLS handshake, which potentially makes adoption easier. However, changes
 to the Web Public Key Infrastructure would also affect adoption.<a href="#appendix-B-1.1.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-B-1.2">
@@ -1578,16 +1577,9 @@ For example, in the HSTS space it is common to experiment first with very short 
 before moving to a longer commitment. This could have a significant effect on real-life adoption.<a href="#appendix-B-1.3.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-B-1.4">
-          <p id="appendix-B-1.4.1">Unlike the current draft, draft-reddy does not allow the TLS client to refuse a connection if it goes
-contrary to the server's commitment. The expectation is for an operational center (realistically, one managed
-by the browser vendor) to observe large scale events where multiple client see such behavior and only then react
-to the situation. This means that detection is slow, possibly measured in days, and that small-scale, targetted
-attacks are likely to remain under the radar.<a href="#appendix-B-1.4.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="appendix-B-1.5">
-          <p id="appendix-B-1.5.1">The revocation checking aspect of the solution relies upon other mechanisms
+          <p id="appendix-B-1.4.1">The revocation checking aspect of the certificate-based solution relies upon other mechanisms
 (e.g. CRLs, OCSP) to also be signed with PQC/Composite. Those other RFCs and
-implementations are likely to take even longer to materialize.<a href="#appendix-B-1.5.1" class="pilcrow">¶</a></p>
+implementations are likely to take even longer to materialize.<a href="#appendix-B-1.4.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>

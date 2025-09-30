@@ -96,12 +96,12 @@ to use PQ algorithms. See {{solution-comparison}} for a comparison between the t
 
 # The pq_cert_available Extension
 
-The following section defines the extension in detail.
+The following section defines a TLS extension that describes a TLS peer's commitment to present PQC
+credentials.
 
 ## Extension Definition
 
 This is a TLS extension, as per sec. 4.2 of {{!RFC8446}}. The extension type for `pq_cert_available` is TBD by IANA.
-
 It MAY appear in the ClientHello (CH) and Certificate (CT) messages sent by either client or server.
 
 A supporting client MUST include this extension in its ClientHello message, with no extension data.
@@ -124,16 +124,14 @@ algorithm or duration is specified.
 
 Note on terminology: Since the extension can be sent by both client and server,
 in the following text we will use the term "sender" for the peer that sent the
-extension in its Certificate message and "recipient" for the other peer. We use
-`signature_algorithm` for the respective extension sent in the ClientHello
-message or for the equivalent extension sent within the server's
-CertificateRequest message.
+extension in its Certificate message and "recipient" for the other peer.
 
 The `signature_algorithm` in this extension MUST be the signature algorithm
-that the sender's certificate is associated with.
+that the sender's certificate is associated with. `SignatureScheme` is defined by
+{{RFC8446}}.
 
 The `algorithm_validity` field is the time duration, in seconds, that the
-sender commits to continue to present a certificate that addresses this
+sender commits to continue to present a certificate that enables this
 signature scheme. The time duration is measured starting with the TLS handshake
 and is unrelated to any particular certificate or its lifecycle.
 
@@ -141,7 +139,8 @@ and is unrelated to any particular certificate or its lifecycle.
 
 A recipient that supports this extension MUST behave as follows:
 
-1. If the recipient holds no cached information for the sender, and the sender includes it:
+1. If the recipient holds no cached information for the sender, and the sender includes a
+non-empty extension:
 
    * The recipient SHOULD cache the provided information after the handshake is
      completed successfully and after the extension's data has been validated.
@@ -149,10 +148,12 @@ A recipient that supports this extension MUST behave as follows:
 
 2. If the recipient holds unexpired cached information for the sender:
 
-   * The recipient SHOULD include the cached algorithm in its `signature_algorithms` list.
-   * It MAY include other PQ signature algorithms.
+   * The recipient SHOULD include the cached algorithm in its `signature_algorithms` list,
+and SHOULD NOT include legacy, non-PQC algorithms. TODO: where exactly?
+   * It MAY include other PQ signature algorithms, according to local policy.
    * Most importantly, it MUST abort the handshake if the sender does not
-     present a certificate associated with one of the requested algorithms.
+     present a certificate associated with one of the requested algorithms. TODO: this would
+happen normally if the sig_alg list only has PQC, no?
 
 3. If the recipient holds unexpired cached information for the sender, and receives a returned extension from the sender:
 

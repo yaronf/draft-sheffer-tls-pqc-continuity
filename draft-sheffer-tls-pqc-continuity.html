@@ -10,7 +10,7 @@
        As the Internet transitions toward post-quantum cryptography (PQC), many TLS servers will continue supporting
 traditional (pre-quantum) certificates to maintain compatibility with legacy clients. However, this
 coexistence introduces a significant vulnerability: an undetected rollback attack, where a malicious
-actor strips the PQC or Composite certificate and forces the inevitable use of a classical certificate once
+actor strips the PQC or Composite certificate and forces the use of a classical certificate once
 quantum-capable adversaries exist. To defend against this, we propose a TLS
 extension which enables a client to cache and enforce a
 commitment by the server to present a PQ-capable certificate for a specified
@@ -38,7 +38,7 @@ infrastructure.
     PyYAML 6.0.2
     requests 2.32.5
     setuptools 80.9.0
-    wcwidth 0.2.13
+    wcwidth 0.2.14
 -->
 <link href="draft-sheffer-tls-pqc-continuity.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -1057,11 +1057,11 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">PQC Continuity</td>
-<td class="right">September 2025</td>
+<td class="right">October 2025</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Sheffer</td>
-<td class="center">Expires 1 April 2026</td>
+<td class="center">Expires 20 April 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1074,12 +1074,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-sheffer-tls-pqc-continuity-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2025-09-28" class="published">28 September 2025</time>
+<time datetime="2025-10-17" class="published">17 October 2025</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-04-01">1 April 2026</time></dd>
+<dd class="expires"><time datetime="2026-04-20">20 April 2026</time></dd>
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
 <div class="author">
@@ -1095,7 +1095,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <p id="section-abstract-1">As the Internet transitions toward post-quantum cryptography (PQC), many TLS servers will continue supporting
 traditional (pre-quantum) certificates to maintain compatibility with legacy clients. However, this
 coexistence introduces a significant vulnerability: an undetected rollback attack, where a malicious
-actor strips the PQC or Composite certificate and forces the inevitable use of a classical certificate once
+actor strips the PQC or Composite certificate and forces the use of a classical certificate once
 quantum-capable adversaries exist. To defend against this, we propose a TLS
 extension which enables a client to cache and enforce a
 commitment by the server to present a PQ-capable certificate for a specified
@@ -1135,7 +1135,7 @@ infrastructure.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 1 April 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 20 April 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1177,13 +1177,16 @@ infrastructure.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
                 <p id="section-toc.1-1.3.2.1.1" class="keepWithNext"><a href="#section-3.1" class="auto internal xref">3.1</a>.  <a href="#name-extension-definition" class="internal xref">Extension Definition</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2">
-                <p id="section-toc.1-1.3.2.2.1"><a href="#section-3.2" class="auto internal xref">3.2</a>.  <a href="#name-recipient-behavior" class="internal xref">Recipient Behavior</a></p>
+                <p id="section-toc.1-1.3.2.2.1"><a href="#section-3.2" class="auto internal xref">3.2</a>.  <a href="#name-algorithm-selection" class="internal xref">Algorithm Selection</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.3">
-                <p id="section-toc.1-1.3.2.3.1"><a href="#section-3.3" class="auto internal xref">3.3</a>.  <a href="#name-sender-behavior" class="internal xref">Sender Behavior</a></p>
+                <p id="section-toc.1-1.3.2.3.1"><a href="#section-3.3" class="auto internal xref">3.3</a>.  <a href="#name-recipient-behavior" class="internal xref">Recipient Behavior</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.4">
-                <p id="section-toc.1-1.3.2.4.1"><a href="#section-3.4" class="auto internal xref">3.4</a>.  <a href="#name-operational-considerations" class="internal xref">Operational Considerations</a></p>
+                <p id="section-toc.1-1.3.2.4.1"><a href="#section-3.4" class="auto internal xref">3.4</a>.  <a href="#name-sender-behavior" class="internal xref">Sender Behavior</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.5">
+                <p id="section-toc.1-1.3.2.5.1"><a href="#section-3.5" class="auto internal xref">3.5</a>.  <a href="#name-operational-considerations" class="internal xref">Operational Considerations</a></p>
 </li>
             </ul>
 </li>
@@ -1194,32 +1197,32 @@ infrastructure.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
             <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
-            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
-</li>
-          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
-            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref"></a><a href="#name-references" class="internal xref">References</a></p>
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-document-history" class="internal xref">Document History</a></p>
 <ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.1">
-                <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="auto internal xref"></a><a href="#name-normative-references" class="internal xref">Normative References</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2">
-                <p id="section-toc.1-1.7.2.2.1"><a href="#section-7.2" class="auto internal xref"></a><a href="#name-informative-references" class="internal xref">Informative References</a></p>
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.1">
+                <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="auto internal xref">6.1</a>.  <a href="#name-draft-sheffer-tls-pqc-conti" class="internal xref">draft-sheffer-tls-pqc-continuity-00</a></p>
 </li>
             </ul>
 </li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+</li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
-            <p id="section-toc.1-1.8.1"><a href="#appendix-A" class="auto internal xref">Appendix A</a>.  <a href="#name-migration-scenarios" class="internal xref">Migration Scenarios</a></p>
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref"></a><a href="#name-references" class="internal xref">References</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.1">
-                <p id="section-toc.1-1.8.2.1.1"><a href="#appendix-A.1" class="auto internal xref">A.1</a>.  <a href="#name-migration-phases" class="internal xref">Migration Phases</a></p>
+                <p id="section-toc.1-1.8.2.1.1"><a href="#section-8.1" class="auto internal xref"></a><a href="#name-normative-references" class="internal xref">Normative References</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.2">
+                <p id="section-toc.1-1.8.2.2.1"><a href="#section-8.2" class="auto internal xref"></a><a href="#name-informative-references" class="internal xref">Informative References</a></p>
 </li>
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
-            <p id="section-toc.1-1.9.1"><a href="#appendix-B" class="auto internal xref">Appendix B</a>.  <a href="#name-comparison-with-draft-reddy" class="internal xref">Comparison with draft-reddy-lamps-x509-pq-commit</a></p>
+            <p id="section-toc.1-1.9.1"><a href="#appendix-A" class="auto internal xref">Appendix A</a>.  <a href="#name-comparison-with-the-certifi" class="internal xref">Comparison with the Certificate-Based Solution</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
-            <p id="section-toc.1-1.10.1"><a href="#appendix-C" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
+            <p id="section-toc.1-1.10.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
 </li>
         </ul>
 </nav>
@@ -1252,7 +1255,7 @@ TLS client to cache an indication that the server is able to
 present a (Composite or pure) PQ certificate, for some duration of time, e.g. one year. As a result:<a href="#section-1-3" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-1-4.1">
-          <p id="section-1-4.1.1">Clients that reconnect to an already known server within the validity period are protected
+          <p id="section-1-4.1.1">Clients reconnecting to an already known server within the validity period are protected
 from rollback to classic certificates.<a href="#section-1-4.1.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-1-4.2">
@@ -1264,12 +1267,11 @@ breakage, and allows servers to revert to classic certificates if they ever see 
 <p id="section-1-6">This extension is modeled on HSTS <span>[<a href="#RFC6797" class="cite xref">RFC6797</a>]</span>, but whereas HSTS is at the HTTP layer, our extension
 is implemented at the TLS layer.<a href="#section-1-6" class="pilcrow">¶</a></p>
 <p id="section-1-7">On the open Web, we expect this extension to be used mainly for caching the fact that a server is
-presenting a PQ certificate. However in other use cases such as service-to-service traffic,
+presenting a PQ certificate. However, in other use cases such as service-to-service traffic,
 it would often make sense to use it for both clients and servers.<a href="#section-1-7" class="pilcrow">¶</a></p>
-<p id="section-1-8"><span class="cref">TODO: add reference when published.</span>
-An alternative approach to downgrade attacks, described in I-d.reddy-lamps-x509-pq-commit,
+<p id="section-1-8">An alternative approach to downgrade attacks, described in <span>[<a href="#I-D.reddy-lamps-x509-pq-commit" class="cite xref">I-D.reddy-lamps-x509-pq-commit</a>]</span>,
 uses specially marked certificates to denote the server's long-term commitment
-to use PQ algorithms. See <a href="#solution-comparison" class="auto internal xref">Appendix B</a> for a comparison between the two approaches.<a href="#section-1-8" class="pilcrow">¶</a></p>
+to use PQ algorithms. See <a href="#solution-comparison" class="auto internal xref">Appendix A</a> for a comparison between the two approaches.<a href="#section-1-8" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="conventions-and-definitions">
@@ -1288,136 +1290,141 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
       <h2 id="name-the-pq_cert_available-exten">
 <a href="#section-3" class="section-number selfRef">3. </a><a href="#name-the-pq_cert_available-exten" class="section-name selfRef">The pq_cert_available Extension</a>
       </h2>
-<p id="section-3-1">The following section defines the extension in detail.<a href="#section-3-1" class="pilcrow">¶</a></p>
+<p id="section-3-1">The following section defines a TLS extension that describes a TLS peer's commitment to present PQC
+credentials.<a href="#section-3-1" class="pilcrow">¶</a></p>
 <div id="extension-definition">
 <section id="section-3.1">
         <h3 id="name-extension-definition">
 <a href="#section-3.1" class="section-number selfRef">3.1. </a><a href="#name-extension-definition" class="section-name selfRef">Extension Definition</a>
         </h3>
-<p id="section-3.1-1">This is a TLS extension, as per sec. 4.2 of <span>[<a href="#RFC8446" class="cite xref">RFC8446</a>]</span>. The extension type for <code>pq_cert_available</code> is TBD by IANA.<a href="#section-3.1-1" class="pilcrow">¶</a></p>
-<p id="section-3.1-2">It <span class="bcp14">MAY</span> appear in the ClientHello (CH) and Certificate (CT) messages sent by either client or server.<a href="#section-3.1-2" class="pilcrow">¶</a></p>
-<p id="section-3.1-3">A supporting client <span class="bcp14">MUST</span> include this extension in its ClientHello message, with no extension data.<a href="#section-3.1-3" class="pilcrow">¶</a></p>
-<p id="section-3.1-4">If the client indicates support, the server <span class="bcp14">MAY</span> include the extension in its Certificate message.
-A client <span class="bcp14">MUST NOT</span> include this extension in its Certificate message unless the server has first included it.<a href="#section-3.1-4" class="pilcrow">¶</a></p>
-<p id="section-3.1-5">The extension data when sent in the Certificate message is:<a href="#section-3.1-5" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-3.1-6">
+<p id="section-3.1-1">This is a TLS extension, as per sec. 4.2 of <span>[<a href="#RFC8446" class="cite xref">RFC8446</a>]</span>. The extension type for <code>pq_cert_available</code> is TBD by IANA.
+It <span class="bcp14">MAY</span> appear in the ClientHello (CH) message, and in Certificate (CT) messages sent by either client or server.<a href="#section-3.1-1" class="pilcrow">¶</a></p>
+<p id="section-3.1-2">A supporting client <span class="bcp14">MUST</span> include this extension in its ClientHello message, with no extension data.<a href="#section-3.1-2" class="pilcrow">¶</a></p>
+<p id="section-3.1-3">If the client indicates support, the server <span class="bcp14">MAY</span> include the extension in its Certificate message.
+For symmetry, the server <span class="bcp14">MAY</span> also send an empty <code>pq_cert_available</code> extension
+to indicate support for this mechanism.
+A client <span class="bcp14">MUST NOT</span> include this extension in its Certificate message unless the server has first included it.<a href="#section-3.1-3" class="pilcrow">¶</a></p>
+<p id="section-3.1-4">The extension data when sent in the Certificate message is:<a href="#section-3.1-4" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-3.1-5">
 <pre>
 struct {
     SignatureScheme signature_algorithm;
     uint32 algorithm_validity;
 }
-</pre><a href="#section-3.1-6" class="pilcrow">¶</a>
+</pre><a href="#section-3.1-5" class="pilcrow">¶</a>
 </div>
-<p id="section-3.1-7">For symmetry, a server <span class="bcp14">MAY</span> send an empty <code>pq_cert_available</code> extension in its
-Certificate message to signal support for this mechanism, even if no signature
-algorithm or duration is specified.<a href="#section-3.1-7" class="pilcrow">¶</a></p>
-<p id="section-3.1-8">Note on terminology: Since the extension can be sent by both client and server,
-in the following text we will use the term "sender" for the peer that sent the
-extension in its Certificate message and "recipient" for the other peer. We use
-<code>signature_algorithm</code> for the respective extension sent in the ClientHello
-message or for the equivalent extension sent within the server's
-CertificateRequest message.<a href="#section-3.1-8" class="pilcrow">¶</a></p>
-<p id="section-3.1-9">The <code>signature_algorithm</code> in this extension <span class="bcp14">MUST</span> be the signature algorithm
-that the sender's certificate is associated with.<a href="#section-3.1-9" class="pilcrow">¶</a></p>
-<p id="section-3.1-10">The <code>algorithm_validity</code> field is the time duration, in seconds, that the
-sender commits to continue to present a certificate that addresses this
+<p id="section-3.1-6">This extension follows the format of TLS 1.3 Certificate message extensions as defined in Sec. 4.4.2 of <span>[<a href="#RFC8446" class="cite xref">RFC8446</a>]</span>.<a href="#section-3.1-6" class="pilcrow">¶</a></p>
+<p id="section-3.1-7">Note on terminology: Since the extension may be by either client or server,
+we use the term "sender" for the peer that sent the
+extension in its Certificate message and "recipient" for the other peer.<a href="#section-3.1-7" class="pilcrow">¶</a></p>
+<p id="section-3.1-8">The <code>signature_algorithm</code> in this extension <span class="bcp14">MUST</span> be the signature algorithm
+that the sender's end-entity certificate is associated with. <code>SignatureScheme</code> is defined by
+<span>[<a href="#RFC8446" class="cite xref">RFC8446</a>]</span>.<a href="#section-3.1-8" class="pilcrow">¶</a></p>
+<p id="section-3.1-9">The <code>algorithm_validity</code> field is the time duration, in seconds, that the
+sender commits to continue to present a certificate that enables this
 signature scheme. The time duration is measured starting with the TLS handshake
-and is unrelated to any particular certificate or its lifecycle.<a href="#section-3.1-10" class="pilcrow">¶</a></p>
+and is unrelated to any particular certificate or its lifecycle.<a href="#section-3.1-9" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="algorithm-selection">
+<section id="section-3.2">
+        <h3 id="name-algorithm-selection">
+<a href="#section-3.2" class="section-number selfRef">3.2. </a><a href="#name-algorithm-selection" class="section-name selfRef">Algorithm Selection</a>
+        </h3>
+<p id="section-3.2-1">If one of the peers holds unexpired cached information for the other peer:<a href="#section-3.2-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-3.2-2.1">
+            <p id="section-3.2-2.1.1">The peer <span class="bcp14">SHOULD</span> include the cached algorithm in the <code>signature_algorithms</code> extension of its
+ClientHello (or CertificateRequest for servers),
+and <span class="bcp14">MUST NOT</span> include legacy (non-PQC) algorithms.<a href="#section-3.2-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.2-2.2">
+            <p id="section-3.2-2.2.1">It <span class="bcp14">MAY</span> include other PQ signature algorithms, according to local policy.<a href="#section-3.2-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-3.2-3">As a result, the handshake would fail if a rollback attack is attempted.<a href="#section-3.2-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="recipient-behavior">
-<section id="section-3.2">
+<section id="section-3.3">
         <h3 id="name-recipient-behavior">
-<a href="#section-3.2" class="section-number selfRef">3.2. </a><a href="#name-recipient-behavior" class="section-name selfRef">Recipient Behavior</a>
+<a href="#section-3.3" class="section-number selfRef">3.3. </a><a href="#name-recipient-behavior" class="section-name selfRef">Recipient Behavior</a>
         </h3>
-<p id="section-3.2-1">A recipient that supports this extension <span class="bcp14">MUST</span> behave as follows:<a href="#section-3.2-1" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-3.2-2">
-<li id="section-3.2-2.1">
-            <p id="section-3.2-2.1.1">If the recipient holds no cached information for the sender, and the sender includes it:<a href="#section-3.2-2.1.1" class="pilcrow">¶</a></p>
+<p id="section-3.3-1">A recipient that supports this extension <span class="bcp14">MUST</span> behave as follows:<a href="#section-3.3-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-3.3-2">
+<li id="section-3.3-2.1">
+            <p id="section-3.3-2.1.1">If the recipient holds no cached information for the sender, and the sender includes a
+non-empty extension:<a href="#section-3.3-2.1.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-3.2-2.1.2.1">
-                <p id="section-3.2-2.1.2.1.1">The recipient <span class="bcp14">SHOULD</span> cache the provided information after the handshake is
-completed successfully and after the extension's data has been validated.<a href="#section-3.2-2.1.2.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-3.3-2.1.2.1">
+                <p id="section-3.3-2.1.2.1.1">The recipient <span class="bcp14">SHOULD</span> cache the provided information after the handshake is
+completed successfully and after the extension's data has been validated.<a href="#section-3.3-2.1.2.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-3.2-2.1.2.2">
-                <p id="section-3.2-2.1.2.2.1">The recipient <span class="bcp14">MAY</span> choose to cache the signature algorithm for a shorter period than specified.<a href="#section-3.2-2.1.2.2.1" class="pilcrow">¶</a></p>
+              <li class="normal" id="section-3.3-2.1.2.2">
+                <p id="section-3.3-2.1.2.2.1">The recipient <span class="bcp14">MAY</span> choose to cache the signature algorithm for a shorter period than specified.<a href="#section-3.3-2.1.2.2.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 </li>
-          <li id="section-3.2-2.2">
-            <p id="section-3.2-2.2.1">If the recipient holds unexpired cached information for the sender:<a href="#section-3.2-2.2.1" class="pilcrow">¶</a></p>
+          <li id="section-3.3-2.2">
+            <p id="section-3.3-2.2.1">If the recipient holds unexpired cached information for the sender, and receives a returned extension from the sender:<a href="#section-3.3-2.2.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-3.2-2.2.2.1">
-                <p id="section-3.2-2.2.2.1.1">The recipient <span class="bcp14">SHOULD</span> include the cached algorithm in its <code>signature_algorithms</code> list.<a href="#section-3.2-2.2.2.1.1" class="pilcrow">¶</a></p>
-</li>
-              <li class="normal" id="section-3.2-2.2.2.2">
-                <p id="section-3.2-2.2.2.2.1">It <span class="bcp14">MAY</span> include other PQ signature algorithms.<a href="#section-3.2-2.2.2.2.1" class="pilcrow">¶</a></p>
-</li>
-              <li class="normal" id="section-3.2-2.2.2.3">
-                <p id="section-3.2-2.2.2.3.1">Most importantly, it <span class="bcp14">MUST</span> abort the handshake if the sender does not
-present a certificate associated with one of the requested algorithms.<a href="#section-3.2-2.2.2.3.1" class="pilcrow">¶</a></p>
-</li>
-            </ul>
-</li>
-          <li id="section-3.2-2.3">
-            <p id="section-3.2-2.3.1">If the recipient holds unexpired cached information for the sender, and receives a returned extension from the sender:<a href="#section-3.2-2.3.1" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-3.2-2.3.2.1">
-                <p id="section-3.2-2.3.2.1.1">The recipient should validate the <code>signature_algorithm</code> relative to the
+<li class="normal" id="section-3.3-2.2.2.1">
+                <p id="section-3.3-2.2.2.1.1">The recipient should validate the <code>signature_algorithm</code> relative to the
 certificate being presented and <span class="bcp14">SHOULD</span> extend its cache period if the
-received time value would expire later than its current cache expiry.<a href="#section-3.2-2.3.2.1.1" class="pilcrow">¶</a></p>
+received time value would expire later than its current cache expiry.<a href="#section-3.3-2.2.2.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-3.2-2.3.2.2">
-                <p id="section-3.2-2.3.2.2.1">It <span class="bcp14">SHOULD NOT</span> accept an <code>algorithm_validity</code> value if it would decrease
-its existing value (within a few seconds' tolerance).<a href="#section-3.2-2.3.2.2.1" class="pilcrow">¶</a></p>
+              <li class="normal" id="section-3.3-2.2.2.2">
+                <p id="section-3.3-2.2.2.2.1">It <span class="bcp14">SHOULD NOT</span> accept an <code>algorithm_validity</code> value if it would decrease
+its existing value (within a few seconds' tolerance).<a href="#section-3.3-2.2.2.2.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-3.2-2.3.2.3">
-                <p id="section-3.2-2.3.2.3.1">It <span class="bcp14">SHOULD</span> replace its cached signature algorithm for the sender by a
-different PQ algorithm is such is sent in the extension, and in this case,
-it <span class="bcp14">SHOULD</span> use the validity time as-is.<a href="#section-3.2-2.3.2.3.1" class="pilcrow">¶</a></p>
+              <li class="normal" id="section-3.3-2.2.2.3">
+                <p id="section-3.3-2.2.2.3.1">It <span class="bcp14">SHOULD</span> replace its cached signature algorithm for the sender by a
+different PQ algorithm if such is sent in the extension, and in this case,
+it <span class="bcp14">SHOULD</span> use the validity time as-is.<a href="#section-3.3-2.2.2.3.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 </li>
-          <li id="section-3.2-2.4">
-            <p id="section-3.2-2.4.1">If the recipient holds unexpired cached information for the sender, and
+          <li id="section-3.3-2.3">
+            <p id="section-3.3-2.3.1">If the recipient holds unexpired cached information for the sender, and
 receives no returned extension from the sender, the recipient <span class="bcp14">SHOULD NOT</span>
-modify its cache.<a href="#section-3.2-2.4.1" class="pilcrow">¶</a></p>
+modify its cache.<a href="#section-3.3-2.3.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
-<p id="section-3.2-3">OPEN ISSUE: do we discuss how the cache is indexed? Service identity per RFC 9525?<a href="#section-3.2-3" class="pilcrow">¶</a></p>
+<p id="section-3.3-3"><span class="cref">OPEN ISSUE: do we discuss how the cache is indexed? Service identity per RFC 9525?</span><a href="#section-3.3-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="sender-behavior">
-<section id="section-3.3">
+<section id="section-3.4">
         <h3 id="name-sender-behavior">
-<a href="#section-3.3" class="section-number selfRef">3.3. </a><a href="#name-sender-behavior" class="section-name selfRef">Sender Behavior</a>
+<a href="#section-3.4" class="section-number selfRef">3.4. </a><a href="#name-sender-behavior" class="section-name selfRef">Sender Behavior</a>
         </h3>
-<ol start="1" type="1" class="normal type-1" id="section-3.3-1">
-<li id="section-3.3-1.1">
-            <p id="section-3.3-1.1.1">A TLS client or server that receives indication that its peer supports this
+<ol start="1" type="1" class="normal type-1" id="section-3.4-1">
+<li id="section-3.4-1.1">
+            <p id="section-3.4-1.1.1">A TLS client or server that receives an indication that its peer supports this
 extension <span class="bcp14">SHOULD</span> send this extension in the Certificate message, provided a
-PQ signature algorithm is used.<a href="#section-3.3-1.1.1" class="pilcrow">¶</a></p>
+PQ signature algorithm is used.<a href="#section-3.4-1.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-3.3-1.2">
-            <p id="section-3.3-1.2.1">The sender <span class="bcp14">MUST</span> keep track of the time duration it has committed to, and use
+          <li id="section-3.4-1.2">
+            <p id="section-3.4-1.2.1">The sender <span class="bcp14">MUST</span> keep track of the time duration it has committed to, and use
 a PQ certificate to authenticate itself for that entire duration. The sender
 <span class="bcp14">MAY</span> change its certificates and may switch between PQ signature algorithms at
-will, as long as the peer indicates acceptance of these algorithms.<a href="#section-3.3-1.2.1" class="pilcrow">¶</a></p>
+will, provided the peer indicates acceptance of these algorithms.<a href="#section-3.4-1.2.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
+<p id="section-3.4-2">This obligation is analogous to maintaining HSTS continuity: once a commitment is made,
+the sender <span class="bcp14">MUST</span> avoid reverting to classical certificates until expiry of <code>algorithm_validity</code>.<a href="#section-3.4-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="operational-considerations">
-<section id="section-3.4">
+<section id="section-3.5">
         <h3 id="name-operational-considerations">
-<a href="#section-3.4" class="section-number selfRef">3.4. </a><a href="#name-operational-considerations" class="section-name selfRef">Operational Considerations</a>
+<a href="#section-3.5" class="section-number selfRef">3.5. </a><a href="#name-operational-considerations" class="section-name selfRef">Operational Considerations</a>
         </h3>
-<p id="section-3.4-1">This extension establishes a (potentially) long-term commitment of the sender
+<p id="section-3.5-1">This extension establishes a (potentially) long-term commitment of the sender
 to support PQ signature algorithms. As such, we recommend that deployers first
 experiment with short validity periods (e.g. one day), and only when satisfied
-that peers populate and depopulate their cache correctly, can move to a longer
-duration. In the case of HSTS, the industry has settled on 1 year as a common
-value.<a href="#section-3.4-1" class="pilcrow">¶</a></p>
+that peers populate and depopulate their cache correctly, they can move to a longer
+duration. In the case of HSTS, lifetimes are commonly set to one year.<a href="#section-3.5-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1438,21 +1445,37 @@ value.<a href="#section-3.4-1" class="pilcrow">¶</a></p>
 <p id="section-5-1">TODO: <code>pq_cert_available</code> extension.<a href="#section-5-1" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="acknowledgments">
+<div id="document-history">
 <section id="section-6">
+      <h2 id="name-document-history">
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-document-history" class="section-name selfRef">Document History</a>
+      </h2>
+<p id="section-6-1">RFC Editor: please remove before publication.<a href="#section-6-1" class="pilcrow">¶</a></p>
+<div id="draft-sheffer-tls-pqc-continuity-00">
+<section id="section-6.1">
+        <h3 id="name-draft-sheffer-tls-pqc-conti">
+<a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-draft-sheffer-tls-pqc-conti" class="section-name selfRef">draft-sheffer-tls-pqc-continuity-00</a>
+        </h3>
+<p id="section-6.1-1">Initial version.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="acknowledgments">
+<section id="section-7">
       <h2 id="name-acknowledgments">
 <a href="#name-acknowledgments" class="section-name selfRef">Acknowledgments</a>
       </h2>
-<p id="section-6-1">TODO acknowledge.<a href="#section-6-1" class="pilcrow">¶</a></p>
+<p id="section-7-1">TODO acknowledge.<a href="#section-7-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="sec-combined-references">
-<section id="section-7">
+<section id="section-8">
       <h2 id="name-references">
 <a href="#name-references" class="section-name selfRef">References</a>
       </h2>
 <div id="sec-normative-references">
-<section id="section-7.1">
+<section id="section-8.1">
         <h3 id="name-normative-references">
 <a href="#name-normative-references" class="section-name selfRef">Normative References</a>
         </h3>
@@ -1473,22 +1496,26 @@ value.<a href="#section-3.4-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="sec-informative-references">
-<section id="section-7.2">
+<section id="section-8.2">
         <h3 id="name-informative-references">
 <a href="#name-informative-references" class="section-name selfRef">Informative References</a>
         </h3>
 <dl class="references">
 <dt id="I-D.ietf-lamps-dilithium-certificates">[I-D.ietf-lamps-dilithium-certificates]</dt>
         <dd>
-<span class="refAuthor">Massimo, J.</span>, <span class="refAuthor">Kampanakis, P.</span>, <span class="refAuthor">Turner, S.</span>, and <span class="refAuthor">B. Westerbaan</span>, <span class="refTitle">"Internet X.509 Public Key Infrastructure - Algorithm Identifiers for the Module-Lattice-Based Digital Signature Algorithm (ML-DSA)"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-lamps-dilithium-certificates-12</span>, <time datetime="2025-06-26" class="refDate">26 June 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-lamps-dilithium-certificates-12">https://datatracker.ietf.org/doc/html/draft-ietf-lamps-dilithium-certificates-12</a>&gt;</span>. </dd>
+<span class="refAuthor">Massimo, J.</span>, <span class="refAuthor">Kampanakis, P.</span>, <span class="refAuthor">Turner, S.</span>, and <span class="refAuthor">B. Westerbaan</span>, <span class="refTitle">"Internet X.509 Public Key Infrastructure - Algorithm Identifiers for the Module-Lattice-Based Digital Signature Algorithm (ML-DSA)"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-lamps-dilithium-certificates-13</span>, <time datetime="2025-09-30" class="refDate">30 September 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-lamps-dilithium-certificates-13">https://datatracker.ietf.org/doc/html/draft-ietf-lamps-dilithium-certificates-13</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="I-D.ietf-lamps-pq-composite-sigs">[I-D.ietf-lamps-pq-composite-sigs]</dt>
         <dd>
-<span class="refAuthor">Ounsworth, M.</span>, <span class="refAuthor">Gray, J.</span>, <span class="refAuthor">Pala, M.</span>, <span class="refAuthor">Klaußner, J.</span>, and <span class="refAuthor">S. Fluhrer</span>, <span class="refTitle">"Composite ML-DSA for use in X.509 Public Key Infrastructure"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-lamps-pq-composite-sigs-08</span>, <time datetime="2025-09-20" class="refDate">20 September 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-lamps-pq-composite-sigs-08">https://datatracker.ietf.org/doc/html/draft-ietf-lamps-pq-composite-sigs-08</a>&gt;</span>. </dd>
+<span class="refAuthor">Ounsworth, M.</span>, <span class="refAuthor">Gray, J.</span>, <span class="refAuthor">Pala, M.</span>, <span class="refAuthor">Klaußner, J.</span>, and <span class="refAuthor">S. Fluhrer</span>, <span class="refTitle">"Composite ML-DSA for use in X.509 Public Key Infrastructure"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-lamps-pq-composite-sigs-12</span>, <time datetime="2025-10-10" class="refDate">10 October 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-lamps-pq-composite-sigs-12">https://datatracker.ietf.org/doc/html/draft-ietf-lamps-pq-composite-sigs-12</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="I-D.ietf-lamps-x509-slhdsa">[I-D.ietf-lamps-x509-slhdsa]</dt>
         <dd>
 <span class="refAuthor">Bashiri, K.</span>, <span class="refAuthor">Fluhrer, S.</span>, <span class="refAuthor">Gazdag, S.</span>, <span class="refAuthor">Van Geest, D.</span>, and <span class="refAuthor">S. Kousidis</span>, <span class="refTitle">"Internet X.509 Public Key Infrastructure: Algorithm Identifiers for SLH-DSA"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-lamps-x509-slhdsa-09</span>, <time datetime="2025-06-30" class="refDate">30 June 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-lamps-x509-slhdsa-09">https://datatracker.ietf.org/doc/html/draft-ietf-lamps-x509-slhdsa-09</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="I-D.reddy-lamps-x509-pq-commit">[I-D.reddy-lamps-x509-pq-commit]</dt>
+        <dd>
+<span class="refAuthor">Reddy.K, T.</span>, <span class="refAuthor">Gray, J.</span>, and <span class="refAuthor">Y. Sheffer</span>, <span class="refTitle">"X.509 Extensions for PQC or Composite Certificate Hosting Continuity"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-reddy-lamps-x509-pq-commit-00</span>, <time datetime="2025-10-12" class="refDate">12 October 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-reddy-lamps-x509-pq-commit-00">https://datatracker.ietf.org/doc/html/draft-reddy-lamps-x509-pq-commit-00</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC6797">[RFC6797]</dt>
       <dd>
@@ -1499,93 +1526,36 @@ value.<a href="#section-3.4-1" class="pilcrow">¶</a></p>
 </div>
 </section>
 </div>
-<div id="migration-scenarios">
-<section id="appendix-A">
-      <h2 id="name-migration-scenarios">
-<a href="#appendix-A" class="section-number selfRef">Appendix A. </a><a href="#name-migration-scenarios" class="section-name selfRef">Migration Scenarios</a>
-      </h2>
-<p id="appendix-A-1">This appendix describes a likely migration scenario as different parts of the
-industry move at different rates from TLS with traditional crypto, into TLS
-with composite certificates and eventually TLS with "pure" PQ certificates.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
-<div id="migration-phases">
-<section id="appendix-A.1">
-        <h3 id="name-migration-phases">
-<a href="#appendix-A.1" class="section-number selfRef">A.1. </a><a href="#name-migration-phases" class="section-name selfRef">Migration Phases</a>
-        </h3>
-<p id="appendix-A.1-1">Following we list a likely chronological progression from today’s predominantly
-classical ecosystem to one using exclusively post-quantum (PQ) certificates.
-Based on our collective experience with TLS version migration and the PKI
-migration from RSA to ECDSA, we expect each phase to be measured in years.<a href="#appendix-A.1-1" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="appendix-A.1-2">
-<li id="appendix-A.1-2.1">
-            <p id="appendix-A.1-2.1.1">Most TLS implementations start by adopting hybrid key exchange. As of this
-writing, the relevant drafts are nearly finalized, making this adoption
-feasible. Moreover, there is already good client-side adoption in the open Web.<a href="#appendix-A.1-2.1.1" class="pilcrow">¶</a></p>
-</li>
-          <li id="appendix-A.1-2.2">
-            <p id="appendix-A.1-2.2.1">Next, composite certificates become available for some portion of the server population.<a href="#appendix-A.1-2.2.1" class="pilcrow">¶</a></p>
-</li>
-          <li id="appendix-A.1-2.3">
-            <p id="appendix-A.1-2.3.1">Clients start using these certificates, and the common policy is "I would
-trust a server that presents either a traditional or a composite
-certificate".<a href="#appendix-A.1-2.3.1" class="pilcrow">¶</a></p>
-</li>
-          <li id="appendix-A.1-2.4">
-            <p id="appendix-A.1-2.4.1">Once the industry has reached a high percentage of Composite adoption on the
-client side, and trust in pure PQ is established, servers may begin
-presenting both Composite and pure PQ certificates.<a href="#appendix-A.1-2.4.1" class="pilcrow">¶</a></p>
-</li>
-          <li id="appendix-A.1-2.5">
-            <p id="appendix-A.1-2.5.1">Clients can then be configured to reject traditional certificates.<a href="#appendix-A.1-2.5.1" class="pilcrow">¶</a></p>
-</li>
-          <li id="appendix-A.1-2.6">
-            <p id="appendix-A.1-2.6.1">Finally, as PQ certificate adoption increases on the server side, clients
-can be configured to accept only pure PQ certificates.<a href="#appendix-A.1-2.6.1" class="pilcrow">¶</a></p>
-</li>
-        </ol>
-<p id="appendix-A.1-3">We expect cryptography-relevant quantum computers (CRQC) to become available,
-at least in small quantities, sometime during this timeline. It is likely that
-early ones will be kept secret by state actors.<a href="#appendix-A.1-3" class="pilcrow">¶</a></p>
-<p id="appendix-A.1-4">If this happens during phases (3) and (4), clients would be vulnerable to
-rollback attacks by a CRQC that can generate a fake traditional certificate.
-This vulnerability would exist despite the use of hybrid key exchange, and even
-if the majority of servers have already adopted Composite certificates. The
-solution described in this document, as well as the certificate-based alternative
-approach, both address this risk.<a href="#appendix-A.1-4" class="pilcrow">¶</a></p>
-<p id="appendix-A.1-5">We believe that similar migration phases, similar risks and similar mitigations
-apply to the Dual Certificate scheme.<a href="#appendix-A.1-5" class="pilcrow">¶</a></p>
-</section>
-</div>
-</section>
-</div>
 <div id="solution-comparison">
-<section id="appendix-B">
-      <h2 id="name-comparison-with-draft-reddy">
-<a href="#appendix-B" class="section-number selfRef">Appendix B. </a><a href="#name-comparison-with-draft-reddy" class="section-name selfRef">Comparison with draft-reddy-lamps-x509-pq-commit</a>
+<section id="appendix-A">
+      <h2 id="name-comparison-with-the-certifi">
+<a href="#appendix-A" class="section-number selfRef">Appendix A. </a><a href="#name-comparison-with-the-certifi" class="section-name selfRef">Comparison with the Certificate-Based Solution</a>
       </h2>
+<p id="appendix-A-1">This section is a comparison with an analogous solution <span>[<a href="#I-D.reddy-lamps-x509-pq-commit" class="cite xref">I-D.reddy-lamps-x509-pq-commit</a>]</span> for the same rollback
+problem, one that signals server continuity using certificates rather than the TLS connection itself.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="appendix-B-1.1">
-          <p id="appendix-B-1.1.1">Draft-reddy does not change the TLS handshake, which potentially makes adoption easier. However, changes
-to the Web Public Key Infrastructure would also affect adoption.<a href="#appendix-B-1.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="appendix-A-2.1">
+          <p id="appendix-A-2.1.1">The certificate-based solution does not change the TLS handshake, which potentially makes adoption easier. However, changes
+to the Web Public Key Infrastructure would also affect adoption.<a href="#appendix-A-2.1.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="appendix-B-1.2">
-          <p id="appendix-B-1.2.1">Draft-reddy is independent of TLS and thus can be used by other protocols.<a href="#appendix-B-1.2.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="appendix-A-2.2">
+          <p id="appendix-A-2.2.1">The certificate-based solution is independent of TLS and thus can be used by other protocols.<a href="#appendix-A-2.2.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="appendix-B-1.3">
-          <p id="appendix-B-1.3.1">Operationally, it is arguably harder to manage the “commitment” through certificates vs. TLS configuration.
-For example, in the HSTS space it is common to experiment first with very short durations, e.g. 1 day,
-before moving to a longer commitment. This could have a significant effect on real-life adoption.<a href="#appendix-B-1.3.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="appendix-A-2.3">
+          <p id="appendix-A-2.3.1">Operationally, it may be harder to manage the “commitment” through certificates vs. TLS configuration.
+For example, in the HSTS space, it is common to experiment first with very short durations, e.g. 1 day,
+before moving to a longer commitment. This could have a significant effect on real-life adoption.<a href="#appendix-A-2.3.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="appendix-B-1.4">
-          <p id="appendix-B-1.4.1">The revocation checking aspect of the certificate-based solution relies upon other mechanisms
+        <li class="normal" id="appendix-A-2.4">
+          <p id="appendix-A-2.4.1">The revocation checking aspect of the certificate-based solution relies upon other mechanisms
 (e.g. CRLs, OCSP) to also be signed with PQC/Composite. Those other RFCs and
-implementations are likely to take even longer to materialize.<a href="#appendix-B-1.4.1" class="pilcrow">¶</a></p>
+implementations are likely to take even longer to materialize.<a href="#appendix-A-2.4.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>
 </div>
 <div id="authors-addresses">
-<section id="appendix-C">
+<section id="appendix-B">
       <h2 id="name-authors-address">
 <a href="#name-authors-address" class="section-name selfRef">Author's Address</a>
       </h2>

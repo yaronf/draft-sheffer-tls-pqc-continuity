@@ -38,7 +38,7 @@ informative:
 --- abstract
 
 As the Internet transitions toward post-quantum cryptography (PQC), many TLS servers will continue supporting
-traditional certificates to maintain compatibility with legacy clients. However, this coexistence introduces a significant vulnerability: an undetected rollback attack, where a malicious actor strips the PQC or Composite certificate and forces the use of a traditional certificate once quantum-capable adversaries exist. 
+traditional certificates to maintain compatibility with legacy clients. However, this coexistence introduces a significant vulnerability: an undetected rollback attack, where a malicious actor strips the PQC or Composite certificate and forces the use of a traditional certificate once quantum-capable adversaries exist.
 
 To defend against this, this document defines a TLS extension that allows a client to cache a server's declared commitment to present PQC or composite certificates for a specified duration. On subsequent connections, clients enforce that cached commitment and reject traditional-only certificates that conflict with it. This mechanism, inspired by HTTP Strict Transport Security (HSTS) but operating at the TLS layer provides PQC downgrade protection without requiring changes to certificate authority (CA) infrastructure.
 
@@ -130,7 +130,7 @@ that the sender's end-entity certificate is associated with. `SignatureScheme` i
 The `algorithm_validity_period` field is the time duration, in seconds, that the
 sender commits to continue to present a certificate that enables this
 signature scheme. The time duration is measured starting with the TLS handshake
-and is unrelated to any particular certificate or its lifecycle. A value of zero 
+and is unrelated to any particular certificate or its lifecycle. A value of zero
 indicates no post-handshake commitment.
 
 ## Algorithm Selection
@@ -236,4 +236,4 @@ For example, in the HSTS space, it is common to experiment first with very short
 before moving to a longer commitment. This could have a significant effect on real-life adoption.
 * The revocation checking aspect of the certificate-based solution relies upon other mechanisms
   (e.g. CRLs, OCSP) to also be signed with PQC/Composite. Those other RFCs and
-implementations are likely to take even longer to materialize. 
+implementations are likely to take even longer to materialize.

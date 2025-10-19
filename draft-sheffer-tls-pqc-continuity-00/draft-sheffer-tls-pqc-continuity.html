@@ -1,0 +1,1604 @@
+<!DOCTYPE html>
+<html lang="en" class="Internet-Draft">
+<head>
+<meta charset="utf-8">
+<meta content="Common,Latin" name="scripts">
+<meta content="initial-scale=1.0" name="viewport">
+<title>PQC Continuity: Downgrade Protection for TLS Servers Migrating to PQC</title>
+<meta content="Yaron Sheffer" name="author">
+<meta content="Tirumaleswar Reddy" name="author">
+<meta content="
+       As the Internet transitions toward post-quantum cryptography (PQC), many TLS servers will continue supporting
+traditional certificates to maintain compatibility with legacy clients. However, this coexistence introduces a significant vulnerability: an undetected rollback attack, where a malicious actor strips the PQC or Composite certificate and forces the use of a traditional certificate once quantum-capable adversaries exist. 
+       To defend against this, this document defines a TLS extension that allows a client to cache a server's declared commitment to present PQC or composite certificates for a specified duration. On subsequent connections, clients enforce that cached commitment and reject traditional-only certificates that conflict with it. This mechanism, inspired by HTTP Strict Transport Security (HSTS) but operating at the TLS layer provides PQC downgrade protection without requiring changes to certificate authority (CA) infrastructure. 
+    " name="description">
+<meta content="xml2rfc 3.31.0" name="generator">
+<meta content="PQC" name="keyword">
+<meta content="TLS" name="keyword">
+<meta content="Downgrade Attacks" name="keyword">
+<meta content="draft-sheffer-tls-pqc-continuity-latest" name="ietf.draft">
+<!-- Generator version information:
+  xml2rfc 3.31.0
+    Python 3.12.12
+    ConfigArgParse 1.7
+    google-i18n-address 3.1.1
+    intervaltree 3.1.0
+    Jinja2 3.1.6
+    lxml 5.3.1
+    platformdirs 4.5.0
+    pycountry 24.6.1
+    PyYAML 6.0.2
+    requests 2.32.5
+    wcwidth 0.2.14
+-->
+<link href="draft-sheffer-tls-pqc-continuity.xml" rel="alternate" type="application/rfc+xml">
+<link href="#copyright" rel="license">
+<style type="text/css">@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: local('Lora SemiBold'), local('Lora-SemiBold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-semibold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  color-scheme: light dark;
+  --background-color: #fff;
+  --text-color: #222;
+  --title-color: #191919;
+  --link-color: #2a6496;
+  --highlight-color: #f9f9f9;
+  --line-color: #eee;
+  --pilcrow-weak: #ddd;
+  --pilcrow-strong: #bbb;
+  --small-font-size: 14.5px;
+  --font-mono: 'Oxygen Mono', monospace;
+  --font-title: "Sofia Sans Semi Condensed", sans-serif;
+  scrollbar-color: #bbb #eee;
+}
+body {
+  max-width: 600px;
+  margin: 75px auto;
+  padding: 0 5px;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  font: 16px/22px "Lora", serif;
+  scroll-behavior: smooth;
+}
+
+.ears {
+  display: none;
+}
+
+/* headings */
+section {
+  clear: both;
+}
+.section-number {
+  padding-right: 0.5em;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-title);
+  font-weight: 680;
+  margin: 0.8em 0 0.3em;
+  font-size-adjust: 0.5;
+  color: var(--title-color);
+}
+h1#title {
+  font-size: 32px;
+  line-height: 40px;
+  clear: both;
+}
+h1#title, h1#rfcnum {
+  margin: 1.5em 0 0.2em;
+}
+h1#rfcnum + h1#title {
+  margin: 0.2em 0;
+}
+
+h1, h2, h3 {
+  font-size: 22px;
+  line-height: 27px;
+}
+h4, h5, h6 {
+  font-size: 20px;
+  line-height: 24px;
+}
+
+/* general structure */
+.author {
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+#abstract+p {
+  font-size: 18px;
+  line-height: 24px;
+}
+#abstract+p code, #abstract+p samp, #abstract+p tt {
+  font-size: 16px;
+  line-height: 0;
+}
+
+p {
+  padding: 0;
+  margin: 0.5em 0;
+  text-align: left;
+}
+div {
+  margin: 0;
+}
+.alignRight.art-text {
+  background-color: var(--highlight-color);
+  border: 1px solid var(--line-color);
+  border-radius: 3px;
+  padding: 0.5em 1em 0;
+  margin-bottom: 0.5em;
+}
+.alignRight.art-text pre {
+  padding: 0;
+  width: auto;
+}
+.alignRight {
+  margin: 1em 0;
+}
+.alignRight > *:first-child {
+  border: none;
+  margin: 0;
+  float: right;
+  clear: both;
+}
+.alignRight > *:nth-child(2) {
+  clear: both;
+  display: block;
+  border: none;
+}
+svg {
+  display: block;
+}
+/* font-family isn't space-separated, but =~ will have to do */
+svg[font-family~="monospace" i], svg [font-family~="monospace" i] {
+  font-family: var(--font-mono);
+}
+.alignCenter.art-text {
+  background-color: var(--highlight-color);
+  border: 1px solid var(--line-color);
+  border-radius: 3px;
+  padding: 0.5em 1em 0;
+  margin-bottom: 0.5em;
+}
+.alignCenter.art-text pre {
+  padding: 0;
+  width: auto;
+}
+.alignCenter {
+  margin: 1em 0;
+}
+.alignCenter > *:first-child {
+  border: none;
+  /* this isn't optimal, but it's an existence proof.  PrinceXML doesn't
+     support flexbox yet.
+  */
+  display: table;
+  margin: 0 auto;
+}
+
+/* lists */
+ol, ul {
+  padding: 0;
+  margin: 0 0 0.5em 2em;
+  & :is(ol, ul) {
+    margin-left: 1em;
+  }
+}
+li {
+  margin: 0 0 0.25em 0;
+}
+ul.empty, .ulEmpty {
+  list-style-type: none;
+  & li {
+    margin-top: 0.5em;
+  }
+}
+:is(ul, ol).compact, .ulCompact, .olCompact {
+  margin: 0 0 0 2em;
+  & li {
+    margin: 0;
+    & :first-child { margin-top: 0; }
+    & :last-child { margin-bottom: 0; }
+  }
+}
+
+/* definition lists */
+dl {
+  clear: left;
+  --indent: 3ch;
+  /* --indent: attr(indent ch); not supported in any browser, but we can dream */
+  &.olPercent {
+    --indent: 5ch;
+    & > dt {
+      min-width: calc(var(--indent) - 2ch);
+    }
+  }
+  &.olPercent > dt {
+    float: none;
+  }
+
+  dl > dd > & {
+    margin-top: 0.5em;
+    margin-bottom: 0;
+  }
+}
+dl:not(.dlNewline) > dt {
+  float: left;
+  margin-right: 2ch;
+  min-width: 8ch;
+}
+dl > dd {
+  margin-bottom: .8em;
+  margin-left: var(--indent) !important; /* stupid element overrides */
+  min-height: 2ex;
+}
+:is(dl.compact, .dlCompact) > dd {
+  margin-bottom: 0;
+  & > :is(:first-child, .break:first-child + *) {
+    margin-top: 0;
+  }
+  & > :is(:last-child) {
+    margin-bottom: 0;
+  }
+}
+:is(dd, span).break {
+  display: none;
+}
+
+/* links */
+a, a[href].selfRef:hover {
+  text-decoration: none;
+}
+a[href] {
+  color: var(--link-color);
+}
+a[href].selfRef, .iref + a[href].internal {
+  color: var(--text-color);
+}
+a[href]:hover {
+  text-decoration: underline;
+}
+a[href].selfRef:hover {
+  background-color: var(--highlight-color);
+}
+a.xref:is(.cite, .auto), :is(#status-of-memo, #copyright) a {
+  white-space: nowrap;
+}
+
+/* Figures */
+tt, code, pre {
+  background-color: var(--highlight-color);
+  font: 14px/22px var(--font-mono);
+}
+tt, code {
+  /* changing the font for inline elements leads to different ascender
+     and descender heights; as we want to retain baseline alignment,
+     remove leading to avoid altering the final height of lines
+     note: this fails if these blocks take an entire line,
+     a different solution would be great */
+  line-height: 0;
+}
+:is(h1, h2, h3, h4, h5, h6) :is(tt, code) {
+  font-size: 84%;
+}
+pre {
+  border: 1px solid var(--line-color);
+  font-size: 13.5px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  margin: 5px;
+  padding: 5px;
+}
+img {
+  max-width: 100%;
+}
+figure {
+  margin: 0.5em 0;
+  padding: 0;
+}
+figure blockquote {
+  margin: 0.8em 0.4em 0.4em;
+}
+figcaption, caption {
+  font-style: italic;
+  margin: 0.5em 1.5em;
+  text-align: left;
+  caption-side: bottom;
+}
+@media screen {
+  /* Auto-collapse boilerplate. */
+  :is(#status-of-memo, #copyright) p {
+    margin: -2px 0;
+    max-height: 0;
+    transition: max-height 2s ease, margin 0.5s ease 0.5s;
+    overflow: hidden;
+  }
+  :is(#status-of-memo, #copyright):hover p,
+  :is(#status-of-memo, #copyright) h2:target ~ p {
+    margin: 0.5em 0;
+    max-height: 500px;
+    overflow: auto;
+  }
+  pre, svg {
+    display: inline-block;
+    /* In the horizontal direction, sometimes people make over-sized figures.
+       Scrollbars for those is therefore necessary: auto adds them as necessary..
+       In the vertical direction, the line-height can combine with the font
+       asender/descender height to produce scrollbars: hidden avoids that. */
+    overflow: auto hidden;
+  }
+  pre {
+    max-width: 100%;
+    width: calc(100% - 22px - 1em);
+  }
+  svg {
+    max-width: calc(100% - 22px - 1em);
+  }
+  figure pre {
+    display: block;
+    width: calc(100% - 25px);
+  }
+  :is(pre, svg) + .pilcrow {
+    display: inline-block;
+    vertical-align: text-bottom;
+    padding-bottom: 8px;
+  }
+}
+
+/* aside, blockquote */
+aside, blockquote {
+  margin-left: 0;
+  padding: 0 2em;
+  font-style: italic;
+}
+blockquote {
+  margin: 1em 0;
+}
+cite {
+  display: block;
+  text-align: right;
+  font-style: italic;
+}
+
+/* tables */
+table {
+  width: auto;
+  max-width: 100%;
+  margin: 0 0 1em;
+  border-collapse: collapse;
+}
+table.right {
+  margin-left: auto;
+}
+table.center {
+  margin-left: auto;
+  margin-right: auto;
+}
+table.left {
+  margin-right: auto;
+}
+table .text-left {
+  text-align: left;
+}
+table .text-center {
+  text-align: center;
+}
+table .text-right {
+  text-align: right;
+}
+
+thead, tbody {
+  border: 1px solid var(--line-color);
+}
+th, td {
+  text-align: left;
+  vertical-align: top;
+  padding: 5px 10px;
+}
+th {
+  background-color: var(--line-color);
+}
+:is(tr:nth-child(2n), thead+tbody > tr:nth-child(2n+1)) > td {
+  background-color: var(--background-color);
+}
+:is(tr:nth-child(2n+1), thead+tbody > tr:nth-child(2n)) > td {
+  background-color: var(--highlight-color);
+}
+table caption {
+  margin: 0;
+  padding: 3px 0 3px 1em;
+}
+table p {
+  margin: 0;
+}
+
+/* pilcrow */
+a.pilcrow {
+  margin-left: 3px;
+  opacity: 0.2;
+  user-select: none;
+  &[href] {
+    color: var(--pilcrow-weak);
+    &:hover { text-decoration: none; }
+  }
+}
+@media not print {
+  :hover > a.pilcrow {
+    opacity: 1;
+  }
+  a.pilcrow[href]:hover {
+    color: var(--pilcrow-strong);
+    background-color: transparent;
+  }
+}
+@media print {
+  a.pilcrow {
+    display: none;
+  }
+}
+
+/* misc */
+hr {
+  border: 0;
+  border-top: 1px solid var(--line-color);
+}
+.bcp14 {
+  font-variant: small-caps;
+  font-weight: 600;
+  font-size: var(--small-font-size);
+}
+.role {
+  font-variant: all-small-caps;
+}
+sub, sup {
+  line-height: 1;
+  font-size: 80%;
+}
+
+/* info block */
+#identifiers {
+  margin: 0;
+  font-size: var(--small-font-size);
+  line-height: 18px;
+  --identifier-width: 15ch;
+  & dt {
+    width: var(--identifier-width);
+    min-width: var(--identifier-width);
+    clear: left;
+    float: left;
+    text-align: right;
+    margin-right: 1ch;
+  }
+  & dd {
+    margin: 0;
+    margin-left: calc(1em + var(--identifier-width)) !important;
+    min-width: 5em;
+  }
+  & .authors {
+    & .author {
+      display: inline-block;
+      margin-right: 1.5em;
+    }
+    & .org {
+      font-style: italic;
+    }
+  }
+}
+
+/* The prepared/rendered info at the very bottom of the page */
+.docInfo {
+  color: #999;
+  font-size: 0.9em;
+  font-style: italic;
+  margin-top: 2em;
+}
+.docInfo .prepared {
+  float: right;
+}
+
+/* table of contents */
+#toc {
+  padding: 0.75em 0 2em 0;
+  margin-bottom: 1em;
+
+  & nav {
+    & ul {
+      margin: 0 0.5em 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    & li {
+      line-height: 1.3em;
+      margin: 2px 0;
+      padding-left: 1.2em;
+      text-indent: -1.2em;
+    }
+  }
+  & a.xref {
+    white-space: normal;
+  }
+}
+
+.references {
+  & > dt {
+    text-align: right;
+    font-weight: bold;
+    min-width: 10ch;
+    margin-right: 1.5ch;
+    &:target::before {
+      content: "⇒";
+      margin: 0 10px 0 -25px;
+    }
+  }
+  & > dd {
+    margin-left: 12ch !important;
+    overflow: visible;
+    & .refInstance {
+      margin-bottom: 0.8em;
+    }
+    & .ascii {
+      margin-bottom: 0.25em;
+    }
+  }
+}
+
+#rfc\.index\.index + ul {
+  margin-left: 0;
+}
+
+/* authors */
+address.vcard {
+  font-style: normal;
+  max-width: 20em;
+  margin: 1em auto 1em 0;
+
+  & .nameRole {
+    font-weight: 700;
+    margin-left: 0;
+  }
+  & .label {
+    margin: 0.5em 0;
+  }
+  & .type {
+    display: none;
+  }
+  & .alternative-contact {
+    margin: 0.5em 0 0.25em 0;
+  }
+  & .non-ascii {
+    margin: 0 0 0 2em;
+  }
+  & div.left {
+    text-align: left;
+  }
+  & div.right {
+    text-align: right;
+  }
+}
+
+hr.addr {
+  border-top: 1px dashed;
+  margin: 0;
+  color: #ddd;
+  max-width: calc(100% - 16px);
+}
+@media (min-width: 500px) {
+  #authors-addresses > section {
+    column-count: 2;
+    column-gap: 20px;
+  }
+  #authors-addresses > section > h2 {
+    column-span: all;
+  }
+  /* hack for break-inside: avoid-column */
+  #authors-addresses address {
+    display: inline-block;
+    break-inside: avoid-column;
+  }
+}
+
+/* Comments */
+.rfcEditorRemove p:first-of-type {
+  font-style: italic;
+}
+.cref {
+  background-color: rgba(249, 232, 105, 0.3);
+  padding: 2px 4px;
+}
+.crefSource {
+  font-style: italic;
+}
+
+@media screen {
+  #toc nav {
+    font-family: var(--font-title);
+    font-weight: 360;
+    & > ul { margin-bottom: 2em; }
+    & ul {
+      margin: 0 0 0 4px;
+      & :is(p, li) {
+        margin: 2px 0;
+      }
+    }
+  }
+  #toc a.toplink {
+    float: right;
+  }
+}
+@media not screen {
+  #toc a.toplink {
+    display: none;
+  }
+}
+
+
+/* TOC layout for smaller screens */
+@media screen and (max-width: 929px) {
+  #toc {
+    position: fixed;
+    z-index: 2;
+    top: 0;
+    right: 0;
+    padding: 1px 0 0 0;
+    margin: 0;
+    border-bottom: 1px solid #ccc;
+    opacity: 0.6;
+  }
+  #toc h2 {
+    margin: 0;
+    padding: 2px 0 2px 6px;
+    padding-right: 1em;
+    font-size: 18px;
+    line-height: 24px;
+    min-width: 190px;
+    text-align: right;
+    background-color: #444;
+    color: white;
+    cursor: pointer;
+    &::before { /* css hamburger */
+      float: right;
+      position: relative;
+      width: 1em;
+      height: 1px;
+      left: -164px;
+      margin: 8px 0 0 0;
+      background: white none repeat scroll 0 0;
+      box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
+      content: "";
+    }
+  }
+  #toc nav {
+    display: none;
+    background-color: var(--background-color);
+    padding: 0.5em 1em 1em;
+    overflow: auto;
+    overscroll-behavior: contain;
+    height: calc(100vh - 48px);
+    border-left: 1px solid #ddd;
+  }
+  #toc.active {
+    opacity: 1;
+    & nav { display: block; }
+  }
+  /* Make the collapsed ToC header render white on gray also when it's a link */
+  #toc h2 a,
+  #toc h2 a:is(:link, :focus, :hover),
+  #toc a.toplink,
+  #toc a.toplink:hover {
+    color: white;
+    background-color: #444;
+    text-decoration: none;
+  }
+  #toc a.toplink {
+    margin: 2px 0.5em 0;
+  }
+}
+
+/* TOC layout for wide screens */
+@media screen and (min-width: 930px) {
+  body {
+    padding-right: 360px;
+    padding-right: calc(min(180px + 20%, 500px));
+  }
+  #toc {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    right: calc(50vw - 480px);
+    width: 312px;
+    margin: 0;
+    padding: 0;
+    z-index: 1;
+  }
+  #toc h2 {
+    margin: 0;
+    padding: 0.25em 1em 1em 0;
+  }
+  #toc nav {
+    display: block;
+    height: calc(90vh - 84px);
+    bottom: 0;
+    padding: 0.5em 0 2em;
+    overflow: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+  img { /* future proofing */
+    max-width: 100%;
+    height: auto;
+  }
+  #toc a.toplink {
+    margin: 8px 0.5em 0;
+  }
+}
+
+/* pagination */
+@media print {
+  body {
+    width: 100%;
+  }
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+  #n-copyright-notice {
+    border-bottom: none;
+  }
+  #toc, #n-introduction {
+    page-break-before: always;
+  }
+  #toc {
+    border-top: none;
+    padding-top: 0;
+  }
+  figure, pre, .vcard {
+    page-break-inside: avoid;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+  :is(h2, h3, h4, h5, h6)+*, dd {
+    page-break-before: avoid;
+  }
+  pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 10pt;
+  }
+  table {
+    border: 1px solid #ddd;
+  }
+  td {
+    border-top: 1px solid #ddd;
+  }
+}
+
+@page :first {
+  padding-top: 0;
+  @top-left {
+    content: normal;
+    border: none;
+  }
+  @top-center {
+    content: normal;
+    border: none;
+  }
+  @top-right {
+    content: normal;
+    border: none;
+  }
+}
+
+@page {
+  size: A4;
+  margin-bottom: 45mm;
+  padding-top: 20px;
+}
+
+/* Dark mode. */
+@media (prefers-color-scheme: dark) {
+:root {
+  --background-color: #121212;
+  --text-color: #f0f0f0;
+  --title-color: #fff;
+  --link-color: #4da4f0;
+  --highlight-color: #282828;
+  --line-color: #444;
+  --pilcrow-weak: #444;
+  --pilcrow-strong: #666;
+  scrollbar-color: #777 #333;
+}
+}
+
+/* SVG Trick: a prefix match works because only black and white are allowed */
+svg :is([stroke="black"], [stroke^="#000"]) {
+  stroke: var(--text-color);
+}
+svg :is([stroke="white"], [stroke^="#fff"]) {
+  stroke: var(--background-color);
+}
+svg :is([fill="black"], [fill^="#000"], :not([fill])) {
+  fill: var(--text-color);
+}
+svg :is([fill="white"], [fill^="#fff"]) {
+  fill: var(--background-color);
+}
+</style>
+
+</head>
+<body class="xml2rfc">
+<table class="ears">
+<thead><tr>
+<td class="left">Internet-Draft</td>
+<td class="center">PQC Continuity</td>
+<td class="right">October 2025</td>
+</tr></thead>
+<tfoot><tr>
+<td class="left">Sheffer &amp; Reddy</td>
+<td class="center">Expires 22 April 2026</td>
+<td class="right">[Page]</td>
+</tr></tfoot>
+</table>
+<div id="external-metadata" class="document-information"></div>
+<div id="internal-metadata" class="document-information">
+<dl id="identifiers">
+<dt class="label-workgroup">Workgroup:</dt>
+<dd class="workgroup">Transport Layer Security</dd>
+<dt class="label-internet-draft">Internet-Draft:</dt>
+<dd class="internet-draft">draft-sheffer-tls-pqc-continuity-latest</dd>
+<dt class="label-published">Published:</dt>
+<dd class="published">
+<time datetime="2025-10-19" class="published">19 October 2025</time>
+    </dd>
+<dt class="label-intended-status">Intended Status:</dt>
+<dd class="intended-status">Standards Track</dd>
+<dt class="label-expires">Expires:</dt>
+<dd class="expires"><time datetime="2026-04-22">22 April 2026</time></dd>
+<dt class="label-authors">Authors:</dt>
+<dd class="authors">
+<div class="author">
+      <div class="author-name">Y. Sheffer</div>
+<div class="org">Intuit</div>
+</div>
+<div class="author">
+      <div class="author-name">T. Reddy</div>
+<div class="org">Nokia</div>
+</div>
+</dd>
+</dl>
+</div>
+<h1 id="title">PQC Continuity: Downgrade Protection for TLS Servers Migrating to PQC</h1>
+<section id="section-abstract">
+      <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
+<p id="section-abstract-1">As the Internet transitions toward post-quantum cryptography (PQC), many TLS servers will continue supporting
+traditional certificates to maintain compatibility with legacy clients. However, this coexistence introduces a significant vulnerability: an undetected rollback attack, where a malicious actor strips the PQC or Composite certificate and forces the use of a traditional certificate once quantum-capable adversaries exist.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+<p id="section-abstract-2">To defend against this, this document defines a TLS extension that allows a client to cache a server's declared commitment to present PQC or composite certificates for a specified duration. On subsequent connections, clients enforce that cached commitment and reject traditional-only certificates that conflict with it. This mechanism, inspired by HTTP Strict Transport Security (HSTS) but operating at the TLS layer provides PQC downgrade protection without requiring changes to certificate authority (CA) infrastructure.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
+</section>
+<section class="note rfcEditorRemove" id="section-note.1">
+      <h2 id="name-about-this-document">
+<a href="#name-about-this-document" class="section-name selfRef">About This Document</a>
+      </h2>
+<p id="section-note.1-1">This note is to be removed before publishing as an RFC.<a href="#section-note.1-1" class="pilcrow">¶</a></p>
+<p id="section-note.1-2">
+        The latest revision of this draft can be found at <span><a href="https://yaronf.github.io/draft-sheffer-tls-pqc-continuity/draft-sheffer-tls-pqc-continuity.html">https://yaronf.github.io/draft-sheffer-tls-pqc-continuity/draft-sheffer-tls-pqc-continuity.html</a></span>.
+        Status information for this document may be found at <span><a href="https://datatracker.ietf.org/doc/draft-sheffer-tls-pqc-continuity/">https://datatracker.ietf.org/doc/draft-sheffer-tls-pqc-continuity/</a></span>.<a href="#section-note.1-2" class="pilcrow">¶</a></p>
+<p id="section-note.1-3">Source for this draft and an issue tracker can be found at
+        <span><a href="https://github.com/yaronf/draft-sheffer-tls-pqc-continuity">https://github.com/yaronf/draft-sheffer-tls-pqc-continuity</a></span>.<a href="#section-note.1-3" class="pilcrow">¶</a></p>
+</section>
+<div id="status-of-memo">
+<section id="section-boilerplate.1">
+        <h2 id="name-status-of-this-memo">
+<a href="#name-status-of-this-memo" class="section-name selfRef">Status of This Memo</a>
+        </h2>
+<p id="section-boilerplate.1-1">
+        This Internet-Draft is submitted in full conformance with the
+        provisions of BCP 78 and BCP 79.<a href="#section-boilerplate.1-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-2">
+        Internet-Drafts are working documents of the Internet Engineering Task
+        Force (IETF). Note that other groups may also distribute working
+        documents as Internet-Drafts. The list of current Internet-Drafts is
+        at <span><a href="https://datatracker.ietf.org/drafts/current/">https://datatracker.ietf.org/drafts/current/</a></span>.<a href="#section-boilerplate.1-2" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-3">
+        Internet-Drafts are draft documents valid for a maximum of six months
+        and may be updated, replaced, or obsoleted by other documents at any
+        time. It is inappropriate to use Internet-Drafts as reference
+        material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-4">
+        This Internet-Draft will expire on 22 April 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="copyright">
+<section id="section-boilerplate.2">
+        <h2 id="name-copyright-notice">
+<a href="#name-copyright-notice" class="section-name selfRef">Copyright Notice</a>
+        </h2>
+<p id="section-boilerplate.2-1">
+            Copyright (c) 2025 IETF Trust and the persons identified as the
+            document authors. All rights reserved.<a href="#section-boilerplate.2-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.2-2">
+            This document is subject to BCP 78 and the IETF Trust's Legal
+            Provisions Relating to IETF Documents
+            (<span><a href="https://trustee.ietf.org/license-info">https://trustee.ietf.org/license-info</a></span>) in effect on the date of
+            publication of this document. Please review these documents
+            carefully, as they describe your rights and restrictions with
+            respect to this document. Code Components extracted from this
+            document must include Revised BSD License text as described in
+            Section 4.e of the Trust Legal Provisions and are provided without
+            warranty as described in the Revised BSD License.<a href="#section-boilerplate.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="toc">
+<section id="section-toc.1">
+        <a href="#" onclick="scroll(0,0)" class="toplink">▲</a><h2 id="name-table-of-contents">
+<a href="#name-table-of-contents" class="section-name selfRef">Table of Contents</a>
+        </h2>
+<nav class="toc"><ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1">
+            <p id="section-toc.1-1.1.1" class="keepWithNext"><a href="#section-1" class="auto internal xref">1</a>.  <a href="#name-introduction" class="internal xref">Introduction</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2">
+            <p id="section-toc.1-1.2.1" class="keepWithNext"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-conventions-and-definitions" class="internal xref">Conventions and Definitions</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
+            <p id="section-toc.1-1.3.1"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-the-pq_cert_available-exten" class="internal xref">The pq_cert_available Extension</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1">
+                <p id="section-toc.1-1.3.2.1.1" class="keepWithNext"><a href="#section-3.1" class="auto internal xref">3.1</a>.  <a href="#name-extension-definition" class="internal xref">Extension Definition</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2">
+                <p id="section-toc.1-1.3.2.2.1"><a href="#section-3.2" class="auto internal xref">3.2</a>.  <a href="#name-algorithm-selection" class="internal xref">Algorithm Selection</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.3">
+                <p id="section-toc.1-1.3.2.3.1"><a href="#section-3.3" class="auto internal xref">3.3</a>.  <a href="#name-recipient-behavior" class="internal xref">Recipient Behavior</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.4">
+                <p id="section-toc.1-1.3.2.4.1"><a href="#section-3.4" class="auto internal xref">3.4</a>.  <a href="#name-sender-behavior" class="internal xref">Sender Behavior</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.5">
+                <p id="section-toc.1-1.3.2.5.1"><a href="#section-3.5" class="auto internal xref">3.5</a>.  <a href="#name-operational-considerations" class="internal xref">Operational Considerations</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-document-history" class="internal xref">Document History</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.1">
+                <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="auto internal xref">6.1</a>.  <a href="#name-draft-sheffer-tls-pqc-conti" class="internal xref">draft-sheffer-tls-pqc-continuity-00</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref"></a><a href="#name-references" class="internal xref">References</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.1">
+                <p id="section-toc.1-1.8.2.1.1"><a href="#section-8.1" class="auto internal xref"></a><a href="#name-normative-references" class="internal xref">Normative References</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.2">
+                <p id="section-toc.1-1.8.2.2.1"><a href="#section-8.2" class="auto internal xref"></a><a href="#name-informative-references" class="internal xref">Informative References</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
+            <p id="section-toc.1-1.9.1"><a href="#appendix-A" class="auto internal xref">Appendix A</a>.  <a href="#name-comparison-with-the-certifi" class="internal xref">Comparison with the Certificate-Based Solution</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
+            <p id="section-toc.1-1.10.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-authors-addresses" class="internal xref">Authors' Addresses</a></p>
+</li>
+        </ul>
+</nav>
+</section>
+</div>
+<div id="introduction">
+<section id="section-1">
+      <h2 id="name-introduction">
+<a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
+      </h2>
+<p id="section-1-1">The migration to post-quantum cryptography (PQC) will be gradual. Servers will
+likely host both traditional and PQC (or composite) certificates to maintain
+compatibility: legacy clients can still connect, while updated ones benefit
+from PQC authentication. The size of the legacy client base often drives the
+decision to keep traditional certificates. Relevant PQC work includes
+<span>[<a href="#I-D.ietf-lamps-dilithium-certificates" class="cite xref">I-D.ietf-lamps-dilithium-certificates</a>]</span> (ML-DSA),
+<span>[<a href="#I-D.ietf-lamps-x509-slhdsa" class="cite xref">I-D.ietf-lamps-x509-slhdsa</a>]</span> (SLH-DSA), and
+<span>[<a href="#I-D.ietf-lamps-pq-composite-sigs" class="cite xref">I-D.ietf-lamps-pq-composite-sigs</a>]</span> (composites).  Not only must legacy
+clients be supported by servers for years, new clients that support PQC are
+also incented to accept traditional certificates, to retain connectivity to
+legacy servers.<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-2">Once a cryptographically relevant quantum computer (CRQC) emerges publicly,
+traditional certificates become insecure
+and must be revoked, regardless of legacy disruption. However, a CRQC may remain undisclosed, allowing
+attackers to exploit classical algorithms secretly. In such cases, adversaries could strip PQC or composite
+certificates, present only traditional ones, and conduct MitM attacks. Relying parties therefore need
+mechanisms to detect when servers claiming PQC support revert to traditional credentials only.<a href="#section-1-2" class="pilcrow">¶</a></p>
+<p id="section-1-3">To prevent such downgrade attacks, this document defines a TLS extension that enables the
+TLS client to cache an indication that the server is able to
+present a (Composite or pure) PQ certificate, for some duration of time, e.g. one year. As a result:<a href="#section-1-3" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-1-4.1">
+          <p id="section-1-4.1.1">Clients reconnecting to an already known server within the validity period are protected
+from rollback to classic certificates.<a href="#section-1-4.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-1-4.2">
+          <p id="section-1-4.2.1">A client begins enforcing the server's PQC commitment only after it has
+successfully connected to the legitimate server at least once (i.e., a connection
+not intercepted by a MiTM). Earlier connections that are
+intercepted or downgraded do not prevent the client from gaining protection
+once it later observes a PQC commitment from a legitimate server.<a href="#section-1-4.2.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-1-5">The explicitly communicated caching time allows clients to implement a caching policy with no risk of sudden
+breakage, and allows servers to revert to traditional certificates if they ever see the need to do so.<a href="#section-1-5" class="pilcrow">¶</a></p>
+<p id="section-1-6">This extension is modeled on HSTS <span>[<a href="#RFC6797" class="cite xref">RFC6797</a>]</span>, but whereas HSTS is at the HTTP layer, the extension
+is implemented at the TLS layer.<a href="#section-1-6" class="pilcrow">¶</a></p>
+<p id="section-1-7">On the open Web, we expect this extension to be used mainly for caching the fact that a server is
+presenting a PQC or composite certificate. However, in other use cases such as service-to-service traffic,
+it would often make sense to use it for both clients and servers.<a href="#section-1-7" class="pilcrow">¶</a></p>
+<p id="section-1-8">An alternative approach to downgrade attacks, described in <span>[<a href="#I-D.reddy-lamps-x509-pq-commit" class="cite xref">I-D.reddy-lamps-x509-pq-commit</a>]</span>,
+uses specially marked certificates to denote the server's long-term commitment
+to use PQC algorithms. See <a href="#solution-comparison" class="auto internal xref">Appendix A</a> for a comparison between the two approaches.<a href="#section-1-8" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="conventions-and-definitions">
+<section id="section-2">
+      <h2 id="name-conventions-and-definitions">
+<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-conventions-and-definitions" class="section-name selfRef">Conventions and Definitions</a>
+      </h2>
+<p id="section-2-1">The key words "<span class="bcp14">MUST</span>", "<span class="bcp14">MUST NOT</span>", "<span class="bcp14">REQUIRED</span>", "<span class="bcp14">SHALL</span>", "<span class="bcp14">SHALL NOT</span>", "<span class="bcp14">SHOULD</span>", "<span class="bcp14">SHOULD NOT</span>", "<span class="bcp14">RECOMMENDED</span>", "<span class="bcp14">NOT RECOMMENDED</span>",
+"<span class="bcp14">MAY</span>", and "<span class="bcp14">OPTIONAL</span>" in this document are to be interpreted as
+described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span> when, and only when, they
+appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="the-pqcertavailable-extension">
+<section id="section-3">
+      <h2 id="name-the-pq_cert_available-exten">
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-the-pq_cert_available-exten" class="section-name selfRef">The pq_cert_available Extension</a>
+      </h2>
+<p id="section-3-1">The following section defines a TLS extension that describes a TLS peer's commitment to present PQC
+credentials.<a href="#section-3-1" class="pilcrow">¶</a></p>
+<div id="extension-definition">
+<section id="section-3.1">
+        <h3 id="name-extension-definition">
+<a href="#section-3.1" class="section-number selfRef">3.1. </a><a href="#name-extension-definition" class="section-name selfRef">Extension Definition</a>
+        </h3>
+<p id="section-3.1-1">This is a TLS extension, as per sec. 4.2 of <span>[<a href="#RFC8446" class="cite xref">RFC8446</a>]</span>. The extension type for <code>pq_cert_available</code> is TBD by IANA.
+It <span class="bcp14">MAY</span> appear in the ClientHello (CH) message, CertificateRequest (CR) message and in Certificate (CT) messages sent by either client or server.<a href="#section-3.1-1" class="pilcrow">¶</a></p>
+<p id="section-3.1-2">A supporting client <span class="bcp14">MUST</span> include this extension in its ClientHello message, with no extension data.<a href="#section-3.1-2" class="pilcrow">¶</a></p>
+<p id="section-3.1-3">If the client indicates support, the server <span class="bcp14">MAY</span> include the extension in its Certificate message.
+For symmetry, the server <span class="bcp14">MAY</span> also send an empty <code>pq_cert_available</code> extension
+in the CertificateRequest to indicate support for this mechanism.
+A client <span class="bcp14">MUST NOT</span> include pq_cert_available in its Certificate message unless the server has first included the extension in a CertificateRequest message.<a href="#section-3.1-3" class="pilcrow">¶</a></p>
+<p id="section-3.1-4">The extension data when sent in the Certificate message is:<a href="#section-3.1-4" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-3.1-5">
+<pre>
+struct {
+    SignatureScheme signature_algorithm;
+    uint32 algorithm_validity_period;
+}
+</pre><a href="#section-3.1-5" class="pilcrow">¶</a>
+</div>
+<p id="section-3.1-6">This extension follows the format of TLS 1.3 Certificate message extensions as defined in Sec. 4.4.2 of <span>[<a href="#RFC8446" class="cite xref">RFC8446</a>]</span>.<a href="#section-3.1-6" class="pilcrow">¶</a></p>
+<p id="section-3.1-7">Note on terminology: Since the extension may be used by either client or server, the term "sender" is used for the peer that sent the
+extension in its Certificate message and "recipient" for the other peer.<a href="#section-3.1-7" class="pilcrow">¶</a></p>
+<p id="section-3.1-8">The <code>signature_algorithm</code> in this extension <span class="bcp14">MUST</span> be the signature algorithm
+that the sender's end-entity certificate is associated with. <code>SignatureScheme</code> is defined by
+<span>[<a href="#RFC8446" class="cite xref">RFC8446</a>]</span>.<a href="#section-3.1-8" class="pilcrow">¶</a></p>
+<p id="section-3.1-9">The <code>algorithm_validity_period</code> field is the time duration, in seconds, that the
+sender commits to continue to present a certificate that enables this
+signature scheme. The time duration is measured starting with the TLS handshake
+and is unrelated to any particular certificate or its lifecycle. A value of zero
+indicates no post-handshake commitment.<a href="#section-3.1-9" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="algorithm-selection">
+<section id="section-3.2">
+        <h3 id="name-algorithm-selection">
+<a href="#section-3.2" class="section-number selfRef">3.2. </a><a href="#name-algorithm-selection" class="section-name selfRef">Algorithm Selection</a>
+        </h3>
+<p id="section-3.2-1">If one of the peers holds unexpired cached information for the other peer:<a href="#section-3.2-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-3.2-2.1">
+            <p id="section-3.2-2.1.1">The peer <span class="bcp14">SHOULD</span> include the cached algorithm in the <code>signature_algorithms</code> extension of its
+ClientHello (or CertificateRequest for servers),
+and <span class="bcp14">MUST NOT</span> include legacy (non-PQC) algorithms.<a href="#section-3.2-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.2-2.2">
+            <p id="section-3.2-2.2.1">It <span class="bcp14">MAY</span> include other PQ signature algorithms, according to local policy.<a href="#section-3.2-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-3.2-3">As a result, the handshake would fail if a rollback attack is attempted.<a href="#section-3.2-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="recipient-behavior">
+<section id="section-3.3">
+        <h3 id="name-recipient-behavior">
+<a href="#section-3.3" class="section-number selfRef">3.3. </a><a href="#name-recipient-behavior" class="section-name selfRef">Recipient Behavior</a>
+        </h3>
+<p id="section-3.3-1">A recipient that supports this extension <span class="bcp14">MUST</span> behave as follows:<a href="#section-3.3-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-3.3-2">
+<li id="section-3.3-2.1">
+            <p id="section-3.3-2.1.1">If the recipient holds no cached information for the sender, and the sender includes a
+non-empty extension:<a href="#section-3.3-2.1.1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-3.3-2.1.2.1">
+                <p id="section-3.3-2.1.2.1.1">The recipient <span class="bcp14">SHOULD</span> cache the provided information after the handshake is
+completed successfully and after the extension's data has been validated.<a href="#section-3.3-2.1.2.1.1" class="pilcrow">¶</a></p>
+</li>
+              <li class="normal" id="section-3.3-2.1.2.2">
+                <p id="section-3.3-2.1.2.2.1">The recipient <span class="bcp14">MAY</span> choose to cache the signature algorithm for a shorter period than specified.<a href="#section-3.3-2.1.2.2.1" class="pilcrow">¶</a></p>
+</li>
+            </ul>
+</li>
+          <li id="section-3.3-2.2">
+            <p id="section-3.3-2.2.1">If the recipient holds unexpired cached information for the sender, and receives a returned extension from the sender:<a href="#section-3.3-2.2.1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-3.3-2.2.2.1">
+                <p id="section-3.3-2.2.2.1.1">The recipient should validate the <code>signature_algorithm</code> relative to the
+certificate being presented and <span class="bcp14">SHOULD</span> extend its cache period if the
+received time value would expire later than its current cache expiry.<a href="#section-3.3-2.2.2.1.1" class="pilcrow">¶</a></p>
+</li>
+              <li class="normal" id="section-3.3-2.2.2.2">
+                <p id="section-3.3-2.2.2.2.1">It <span class="bcp14">SHOULD NOT</span> accept an <code>algorithm_validity</code> value if it would decrease
+its existing value (within a few seconds' tolerance).<a href="#section-3.3-2.2.2.2.1" class="pilcrow">¶</a></p>
+</li>
+              <li class="normal" id="section-3.3-2.2.2.3">
+                <p id="section-3.3-2.2.2.3.1">It <span class="bcp14">SHOULD</span> replace its cached signature algorithm for the sender by a
+different PQ algorithm if such is sent in the extension, and in this case,
+it <span class="bcp14">SHOULD</span> use the validity time as-is.<a href="#section-3.3-2.2.2.3.1" class="pilcrow">¶</a></p>
+</li>
+            </ul>
+</li>
+          <li id="section-3.3-2.3">
+            <p id="section-3.3-2.3.1">If the recipient holds unexpired cached information for the sender, and
+receives no returned extension from the sender, the recipient <span class="bcp14">SHOULD NOT</span>
+modify its cache.<a href="#section-3.3-2.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ol>
+<p id="section-3.3-3"><span class="cref">OPEN ISSUE: do we discuss how the cache is indexed? Service identity per RFC 9525?</span><a href="#section-3.3-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="sender-behavior">
+<section id="section-3.4">
+        <h3 id="name-sender-behavior">
+<a href="#section-3.4" class="section-number selfRef">3.4. </a><a href="#name-sender-behavior" class="section-name selfRef">Sender Behavior</a>
+        </h3>
+<ol start="1" type="1" class="normal type-1" id="section-3.4-1">
+<li id="section-3.4-1.1">
+            <p id="section-3.4-1.1.1">A TLS client or server that receives an indication that its peer supports this
+extension <span class="bcp14">SHOULD</span> send this extension in the Certificate message, provided a
+PQ signature algorithm is used.<a href="#section-3.4-1.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-3.4-1.2">
+            <p id="section-3.4-1.2.1">The sender <span class="bcp14">MUST</span> keep track of the time duration it has committed to, and use
+a PQ certificate to authenticate itself for that entire duration. The sender
+<span class="bcp14">MAY</span> change its certificates and may switch between PQ signature algorithms at
+will, provided the peer indicates acceptance of these algorithms.<a href="#section-3.4-1.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ol>
+<p id="section-3.4-2">This obligation is analogous to maintaining HSTS continuity: once a commitment is made,
+the sender <span class="bcp14">MUST</span> avoid reverting to classical certificates until expiry of <code>algorithm_validity</code>.<a href="#section-3.4-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="operational-considerations">
+<section id="section-3.5">
+        <h3 id="name-operational-considerations">
+<a href="#section-3.5" class="section-number selfRef">3.5. </a><a href="#name-operational-considerations" class="section-name selfRef">Operational Considerations</a>
+        </h3>
+<p id="section-3.5-1">This extension establishes a (potentially) long-term commitment of the sender
+to support PQ signature algorithms. As such, we recommend that deployers first
+experiment with short validity periods (e.g. one day), and only when satisfied
+that peers populate and depopulate their cache correctly, they can move to a longer
+duration. In the case of HSTS, lifetimes are commonly set to one year.<a href="#section-3.5-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="security-considerations">
+<section id="section-4">
+      <h2 id="name-security-considerations">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+      </h2>
+<p id="section-4-1">TODO Security<a href="#section-4-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="iana-considerations">
+<section id="section-5">
+      <h2 id="name-iana-considerations">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+      </h2>
+<p id="section-5-1">IANA is requested to assign a new value from the “TLS ExtensionType Values”<a href="#section-5-1" class="pilcrow">¶</a></p>
+<table class="center" id="table-1">
+        <caption><a href="#table-1" class="selfRef">Table 1</a></caption>
+<thead>
+          <tr>
+            <th class="text-right" rowspan="1" colspan="1">Value</th>
+            <th class="text-left" rowspan="1" colspan="1">Extension Name</th>
+            <th class="text-center" rowspan="1" colspan="1">TLS 1.3</th>
+            <th class="text-center" rowspan="1" colspan="1">Recommended</th>
+            <th class="text-left" rowspan="1" colspan="1">Reference</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="text-right" rowspan="1" colspan="1">TBD</td>
+            <td class="text-left" rowspan="1" colspan="1">pq_cert_available</td>
+            <td class="text-center" rowspan="1" colspan="1">CH, CR,CT</td>
+            <td class="text-center" rowspan="1" colspan="1">Y</td>
+            <td class="text-left" rowspan="1" colspan="1">This document</td>
+          </tr>
+        </tbody>
+      </table>
+</section>
+</div>
+<div id="document-history">
+<section id="section-6">
+      <h2 id="name-document-history">
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-document-history" class="section-name selfRef">Document History</a>
+      </h2>
+<p id="section-6-1">RFC Editor: please remove before publication.<a href="#section-6-1" class="pilcrow">¶</a></p>
+<div id="draft-sheffer-tls-pqc-continuity-00">
+<section id="section-6.1">
+        <h3 id="name-draft-sheffer-tls-pqc-conti">
+<a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-draft-sheffer-tls-pqc-conti" class="section-name selfRef">draft-sheffer-tls-pqc-continuity-00</a>
+        </h3>
+<p id="section-6.1-1">Initial version.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="acknowledgments">
+<section id="section-7">
+      <h2 id="name-acknowledgments">
+<a href="#name-acknowledgments" class="section-name selfRef">Acknowledgments</a>
+      </h2>
+<p id="section-7-1">TODO acknowledge.<a href="#section-7-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="sec-combined-references">
+<section id="section-8">
+      <h2 id="name-references">
+<a href="#name-references" class="section-name selfRef">References</a>
+      </h2>
+<div id="sec-normative-references">
+<section id="section-8.1">
+        <h3 id="name-normative-references">
+<a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+        </h3>
+<dl class="references">
+<dt id="RFC2119">[RFC2119]</dt>
+        <dd>
+<span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc2119">https://www.rfc-editor.org/rfc/rfc2119</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8174">[RFC8174]</dt>
+        <dd>
+<span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8446">[RFC8446]</dt>
+      <dd>
+<span class="refAuthor">Rescorla, E.</span>, <span class="refTitle">"The Transport Layer Security (TLS) Protocol Version 1.3"</span>, <span class="seriesInfo">RFC 8446</span>, <span class="seriesInfo">DOI 10.17487/RFC8446</span>, <time datetime="2018-08" class="refDate">August 2018</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8446">https://www.rfc-editor.org/rfc/rfc8446</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="sec-informative-references">
+<section id="section-8.2">
+        <h3 id="name-informative-references">
+<a href="#name-informative-references" class="section-name selfRef">Informative References</a>
+        </h3>
+<dl class="references">
+<dt id="I-D.ietf-lamps-dilithium-certificates">[I-D.ietf-lamps-dilithium-certificates]</dt>
+        <dd>
+<span class="refAuthor">Massimo, J.</span>, <span class="refAuthor">Kampanakis, P.</span>, <span class="refAuthor">Turner, S.</span>, and <span class="refAuthor">B. Westerbaan</span>, <span class="refTitle">"Internet X.509 Public Key Infrastructure - Algorithm Identifiers for the Module-Lattice-Based Digital Signature Algorithm (ML-DSA)"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-lamps-dilithium-certificates-13</span>, <time datetime="2025-09-30" class="refDate">30 September 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-lamps-dilithium-certificates-13">https://datatracker.ietf.org/doc/html/draft-ietf-lamps-dilithium-certificates-13</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="I-D.ietf-lamps-pq-composite-sigs">[I-D.ietf-lamps-pq-composite-sigs]</dt>
+        <dd>
+<span class="refAuthor">Ounsworth, M.</span>, <span class="refAuthor">Gray, J.</span>, <span class="refAuthor">Pala, M.</span>, <span class="refAuthor">Klaußner, J.</span>, and <span class="refAuthor">S. Fluhrer</span>, <span class="refTitle">"Composite ML-DSA for use in X.509 Public Key Infrastructure"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-lamps-pq-composite-sigs-12</span>, <time datetime="2025-10-10" class="refDate">10 October 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-lamps-pq-composite-sigs-12">https://datatracker.ietf.org/doc/html/draft-ietf-lamps-pq-composite-sigs-12</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="I-D.ietf-lamps-x509-slhdsa">[I-D.ietf-lamps-x509-slhdsa]</dt>
+        <dd>
+<span class="refAuthor">Bashiri, K.</span>, <span class="refAuthor">Fluhrer, S.</span>, <span class="refAuthor">Gazdag, S.</span>, <span class="refAuthor">Van Geest, D.</span>, and <span class="refAuthor">S. Kousidis</span>, <span class="refTitle">"Internet X.509 Public Key Infrastructure: Algorithm Identifiers for SLH-DSA"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-lamps-x509-slhdsa-09</span>, <time datetime="2025-06-30" class="refDate">30 June 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-lamps-x509-slhdsa-09">https://datatracker.ietf.org/doc/html/draft-ietf-lamps-x509-slhdsa-09</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="I-D.reddy-lamps-x509-pq-commit">[I-D.reddy-lamps-x509-pq-commit]</dt>
+        <dd>
+<span class="refAuthor">Reddy.K, T.</span>, <span class="refAuthor">Gray, J.</span>, and <span class="refAuthor">Y. Sheffer</span>, <span class="refTitle">"X.509 Extensions for PQC or Composite Certificate Hosting Continuity"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-reddy-lamps-x509-pq-commit-00</span>, <time datetime="2025-10-12" class="refDate">12 October 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-reddy-lamps-x509-pq-commit-00">https://datatracker.ietf.org/doc/html/draft-reddy-lamps-x509-pq-commit-00</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC6797">[RFC6797]</dt>
+      <dd>
+<span class="refAuthor">Hodges, J.</span>, <span class="refAuthor">Jackson, C.</span>, and <span class="refAuthor">A. Barth</span>, <span class="refTitle">"HTTP Strict Transport Security (HSTS)"</span>, <span class="seriesInfo">RFC 6797</span>, <span class="seriesInfo">DOI 10.17487/RFC6797</span>, <time datetime="2012-11" class="refDate">November 2012</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc6797">https://www.rfc-editor.org/rfc/rfc6797</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
+</section>
+</div>
+<div id="solution-comparison">
+<section id="appendix-A">
+      <h2 id="name-comparison-with-the-certifi">
+<a href="#appendix-A" class="section-number selfRef">Appendix A. </a><a href="#name-comparison-with-the-certifi" class="section-name selfRef">Comparison with the Certificate-Based Solution</a>
+      </h2>
+<p id="appendix-A-1">This section is a comparison with an analogous solution <span>[<a href="#I-D.reddy-lamps-x509-pq-commit" class="cite xref">I-D.reddy-lamps-x509-pq-commit</a>]</span> for the same rollback
+problem, one that signals server continuity using certificates rather than the TLS connection itself.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="appendix-A-2.1">
+          <p id="appendix-A-2.1.1">The certificate-based solution does not change the TLS handshake, which potentially makes adoption easier. However, changes
+to the Web Public Key Infrastructure would also affect adoption.<a href="#appendix-A-2.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-A-2.2">
+          <p id="appendix-A-2.2.1">The certificate-based solution is independent of TLS and thus can be used by other protocols.<a href="#appendix-A-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-A-2.3">
+          <p id="appendix-A-2.3.1">Operationally, it may be harder to manage the “commitment” through certificates vs. TLS configuration.
+For example, in the HSTS space, it is common to experiment first with very short durations, e.g. 1 day,
+before moving to a longer commitment. This could have a significant effect on real-life adoption.<a href="#appendix-A-2.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-A-2.4">
+          <p id="appendix-A-2.4.1">The revocation checking aspect of the certificate-based solution relies upon other mechanisms
+(e.g. CRLs, OCSP) to also be signed with PQC/Composite. Those other RFCs and
+implementations are likely to take even longer to materialize.<a href="#appendix-A-2.4.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+</section>
+</div>
+<div id="authors-addresses">
+<section id="appendix-B">
+      <h2 id="name-authors-addresses">
+<a href="#name-authors-addresses" class="section-name selfRef">Authors' Addresses</a>
+      </h2>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Yaron Sheffer</span></div>
+<div dir="auto" class="left"><span class="org">Intuit</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:yaronf.ietf@gmail.com" class="email">yaronf.ietf@gmail.com</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Tirumaleswar Reddy</span></div>
+<div dir="auto" class="left"><span class="org">Nokia</span></div>
+<div dir="auto" class="left">
+<span class="locality">Bangalore</span> </div>
+<div dir="auto" class="left"><span class="region">Karnataka</span></div>
+<div dir="auto" class="left"><span class="country-name">India</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:k.tirumaleswar_reddy@nokia.com" class="email">k.tirumaleswar_reddy@nokia.com</a>
+</div>
+</address>
+</section>
+</div>
+<script>const toc = document.getElementById("toc");
+toc.querySelector("h2").addEventListener("click", e => {
+  toc.classList.toggle("active");
+});
+toc.querySelector("nav").addEventListener("click", e => {
+  toc.classList.remove("active");
+});
+</script>
+</body>
+</html>

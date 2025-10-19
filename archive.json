@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-10-16T01:43:38.260565+00:00",
+  "timestamp": "2025-10-19T01:54:01.014451+00:00",
   "repo": "yaronf/draft-sheffer-tls-pqc-continuity",
   "labels": [
     {
@@ -50,5 +50,53 @@
     }
   ],
   "issues": [],
-  "pulls": []
+  "pulls": [
+    {
+      "number": 1,
+      "id": "PR_kwDOP3oGhM6uc3dP",
+      "title": "Initial updates to the draft",
+      "url": "https://github.com/yaronf/draft-sheffer-tls-pqc-continuity/pull/1",
+      "state": "OPEN",
+      "author": "tireddy2",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2025-10-18T13:41:04Z",
+      "updatedAt": "2025-10-18T16:21:27Z",
+      "baseRepository": "yaronf/draft-sheffer-tls-pqc-continuity",
+      "baseRefName": "main",
+      "baseRefOid": "188cb813c6869b03e96d7d0857851cae297e879f",
+      "headRepository": "tireddy2/draft-sheffer-tls-pqc-continuity",
+      "headRefName": "main",
+      "headRefOid": "c8ab558e1cbec8ce40f4c073c07d2503bbbfc540",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOP3oGhM7H5I9F",
+          "commit": {
+            "abbreviatedOid": "c8ab558"
+          },
+          "author": "yaronf",
+          "authorAssociation": "OWNER",
+          "state": "CHANGES_REQUESTED",
+          "body": "Looks good, other than one comment.",
+          "createdAt": "2025-10-18T16:18:39Z",
+          "updatedAt": "2025-10-18T16:21:27Z",
+          "comments": [
+            {
+              "originalPosition": 47,
+              "body": "I prefer the original text here, because a client may connect through a MITM for a few times, but once it connects directly even once, it obtains correct information.",
+              "createdAt": "2025-10-18T16:18:39Z",
+              "updatedAt": "2025-10-18T16:21:27Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }

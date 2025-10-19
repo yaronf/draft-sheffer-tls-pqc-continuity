@@ -71,7 +71,11 @@ present a (Composite or pure) PQ certificate, for some duration of time, e.g. on
 
 * Clients reconnecting to an already known server within the validity period are protected
 from rollback to classic certificates.
-* A first-time (new) client can only learn and enforce the server's PQC commitment if its initial connection reaches the legitimate server, not an MiTM.
+* A client begins enforcing the server's PQC commitment only after it has
+  successfully connected to the legitimate server at least once (i.e., a connection
+  not intercepted by a MiTM). Earlier connections that are
+  intercepted or downgraded do not prevent the client from gaining protection
+  once it later observes a PQC commitment from a legitimate server.
 
 The explicitly communicated caching time allows clients to implement a caching policy with no risk of sudden
 breakage, and allows servers to revert to traditional certificates if they ever see the need to do so.

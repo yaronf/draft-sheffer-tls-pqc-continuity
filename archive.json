@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-10-19T01:54:01.014451+00:00",
+  "timestamp": "2025-10-21T01:45:33.533949+00:00",
   "repo": "yaronf/draft-sheffer-tls-pqc-continuity",
   "labels": [
     {
@@ -56,24 +56,26 @@
       "id": "PR_kwDOP3oGhM6uc3dP",
       "title": "Initial updates to the draft",
       "url": "https://github.com/yaronf/draft-sheffer-tls-pqc-continuity/pull/1",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "tireddy2",
-      "authorAssociation": "NONE",
+      "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "",
       "createdAt": "2025-10-18T13:41:04Z",
-      "updatedAt": "2025-10-18T16:21:27Z",
+      "updatedAt": "2025-10-19T06:19:05Z",
       "baseRepository": "yaronf/draft-sheffer-tls-pqc-continuity",
       "baseRefName": "main",
       "baseRefOid": "188cb813c6869b03e96d7d0857851cae297e879f",
       "headRepository": "tireddy2/draft-sheffer-tls-pqc-continuity",
       "headRefName": "main",
-      "headRefOid": "c8ab558e1cbec8ce40f4c073c07d2503bbbfc540",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "a134eb900841589e9f41adf4b53e4c2089c04047",
+      "closedAt": "2025-10-19T06:19:05Z",
+      "mergedAt": "2025-10-19T06:19:04Z",
+      "mergedBy": "yaronf",
+      "mergeCommit": {
+        "oid": "059a1b1cfc90235e478e90776c519e57ad251bb9"
+      },
       "comments": [],
       "reviews": [
         {
@@ -95,6 +97,39 @@
               "updatedAt": "2025-10-18T16:21:27Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOP3oGhM7H6YFs",
+          "commit": {
+            "abbreviatedOid": "c8ab558"
+          },
+          "author": "tireddy2",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2025-10-19T06:16:16Z",
+          "updatedAt": "2025-10-19T06:16:17Z",
+          "comments": [
+            {
+              "originalPosition": 47,
+              "body": "Got it, updated text. ",
+              "createdAt": "2025-10-19T06:16:16Z",
+              "updatedAt": "2025-10-19T06:16:17Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOP3oGhM7H6YLT",
+          "commit": {
+            "abbreviatedOid": "a134eb9"
+          },
+          "author": "yaronf",
+          "authorAssociation": "OWNER",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2025-10-19T06:17:59Z",
+          "updatedAt": "2025-10-19T06:17:59Z",
+          "comments": []
         }
       ]
     }

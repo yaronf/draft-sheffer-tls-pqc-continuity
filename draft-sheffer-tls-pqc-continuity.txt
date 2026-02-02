@@ -5,8 +5,8 @@
 Transport Layer Security                                      Y. Sheffer
 Internet-Draft                                                    Intuit
 Intended status: Standards Track                                T. Reddy
-Expires: 22 April 2026                                             Nokia
-                                                         19 October 2025
+Expires: 6 August 2026                                             Nokia
+                                                         2 February 2026
 
 
  PQC Continuity: Downgrade Protection for TLS Servers Migrating to PQC
@@ -28,7 +28,7 @@ Abstract
    subsequent connections, clients enforce that cached commitment and
    reject traditional-only certificates that conflict with it.  This
    mechanism, inspired by HTTP Strict Transport Security (HSTS) but
-   operating at the TLS layer provides PQC downgrade protection without
+   operating at the TLS layer, provides PQC downgrade protection without
    requiring changes to certificate authority (CA) infrastructure.
 
 About This Document
@@ -59,11 +59,11 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 22 April 2026.
+   This Internet-Draft will expire on 6 August 2026.
 
 Copyright Notice
 
-   Copyright (c) 2025 IETF Trust and the persons identified as the
+   Copyright (c) 2026 IETF Trust and the persons identified as the
    document authors.  All rights reserved.
 
    This document is subject to BCP 78 and the IETF Trust's Legal
@@ -122,7 +122,7 @@ Table of Contents
 
    To prevent such downgrade attacks, this document defines a TLS
    extension that enables the TLS client to cache an indication that the
-   server is able to present a (Composite or pure) PQ certificate, for
+   server is able to present a (Composite or pure) PQC certificate, for
    some duration of time, e.g. one year.  As a result:
 
    *  Clients reconnecting to an already known server within the
@@ -131,7 +131,7 @@ Table of Contents
 
    *  A client begins enforcing the server's PQC commitment only after
       it has successfully connected to the legitimate server at least
-      once (i.e., a connection not intercepted by a MiTM).  Earlier
+      once (i.e., a connection not intercepted by a MitM).  Earlier
       connections that are intercepted or downgraded do not prevent the
       client from gaining protection once it later observes a PQC
       commitment from a legitimate server.
@@ -142,7 +142,7 @@ Table of Contents
    so.
 
    This extension is modeled on HSTS [RFC6797], but whereas HSTS is at
-   the HTTP layer, the extension is implemented at the TLS layer.
+   the HTTP layer, this extension is implemented at the TLS layer.
 
    On the open Web, we expect this extension to be used mainly for
    caching the fact that a server is presenting a PQC or composite
@@ -221,7 +221,7 @@ Table of Contents
       CertificateRequest for servers), and MUST NOT include legacy (non-
       PQC) algorithms.
 
-   *  It MAY include other PQ signature algorithms, according to local
+   *  It MAY include other PQC signature algorithms, according to local
       policy.
 
    As a result, the handshake would fail if a rollback attack is
@@ -244,16 +244,17 @@ Table of Contents
    2.  If the recipient holds unexpired cached information for the
        sender, and receives a returned extension from the sender:
 
-       *  The recipient should validate the signature_algorithm relative
+       *  The recipient SHOULD validate the signature_algorithm relative
           to the certificate being presented and SHOULD extend its cache
           period if the received time value would expire later than its
           current cache expiry.
 
-       *  It SHOULD NOT accept an algorithm_validity value if it would
-          decrease its existing value (within a few seconds' tolerance).
+       *  It SHOULD NOT accept an algorithm_validity_period value if it
+          would decrease its existing value (within a few seconds'
+          tolerance).
 
        *  It SHOULD replace its cached signature algorithm for the
-          sender by a different PQ algorithm if such is sent in the
+          sender by a different PQC algorithm if such is sent in the
           extension, and in this case, it SHOULD use the validity time
           as-is.
 
@@ -269,26 +270,26 @@ Table of Contents
 
    1.  A TLS client or server that receives an indication that its peer
        supports this extension SHOULD send this extension in the
-       Certificate message, provided a PQ signature algorithm is used.
+       Certificate message, provided a PQC signature algorithm is used.
 
    2.  The sender MUST keep track of the time duration it has committed
-       to, and use a PQ certificate to authenticate itself for that
+       to, and use a PQC certificate to authenticate itself for that
        entire duration.  The sender MAY change its certificates and may
-       switch between PQ signature algorithms at will, provided the peer
-       indicates acceptance of these algorithms.
+       switch between PQC signature algorithms at will, provided the
+       peer indicates acceptance of these algorithms.
 
    This obligation is analogous to maintaining HSTS continuity: once a
    commitment is made, the sender MUST avoid reverting to classical
-   certificates until expiry of algorithm_validity.
+   certificates until expiry of algorithm_validity_period.
 
 3.5.  Operational Considerations
 
    This extension establishes a (potentially) long-term commitment of
-   the sender to support PQ signature algorithms.  As such, we recommend
-   that deployers first experiment with short validity periods (e.g. one
-   day), and only when satisfied that peers populate and depopulate
-   their cache correctly, they can move to a longer duration.  In the
-   case of HSTS, lifetimes are commonly set to one year.
+   the sender to support PQC signature algorithms.  As such, we
+   recommend that deployers first experiment with short validity periods
+   (e.g. one day), and only when satisfied that peers populate and
+   depopulate their cache correctly, they can move to a longer duration.
+   In the case of HSTS, lifetimes are commonly set to one year.
 
 4.  Security Considerations
 
@@ -297,16 +298,16 @@ Table of Contents
 5.  IANA Considerations
 
    IANA is requested to assign a new value from the “TLS ExtensionType
-   Values”
+   Values” registry.
 
-    +=======+===================+===========+=============+===========+
-    | Value | Extension Name    |  TLS 1.3  | Recommended | Reference |
-    +=======+===================+===========+=============+===========+
-    |   TBD | pq_cert_available | CH, CR,CT |      Y      | This      |
-    |       |                   |           |             | document  |
-    +-------+-------------------+-----------+-------------+-----------+
+   +=======+===================+============+=============+===========+
+   | Value | Extension Name    |  TLS 1.3   | Recommended | Reference |
+   +=======+===================+============+=============+===========+
+   |   TBD | pq_cert_available | CH, CR, CT |      Y      | This      |
+   |       |                   |            |             | document  |
+   +-------+-------------------+------------+-------------+-----------+
 
-                                  Table 1
+                                 Table 1
 
 6.  Document History
 
@@ -352,9 +353,9 @@ Informative References
               Ounsworth, M., Gray, J., Pala, M., Klaußner, J., and S.
               Fluhrer, "Composite ML-DSA for use in X.509 Public Key
               Infrastructure", Work in Progress, Internet-Draft, draft-
-              ietf-lamps-pq-composite-sigs-12, 10 October 2025,
+              ietf-lamps-pq-composite-sigs-14, 7 January 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-lamps-
-              pq-composite-sigs-12>.
+              pq-composite-sigs-14>.
 
    [I-D.ietf-lamps-x509-slhdsa]
               Bashiri, K., Fluhrer, S., Gazdag, S., Van Geest, D., and

@@ -220,6 +220,11 @@ IANA is requested to assign a new value from the “TLS ExtensionType Values” 
 
 RFC Editor: please remove before publication.
 
+## draft-sheffer-tls-pqc-continuity-01
+
+* Language consistency improvements (terminology, field names, formatting).
+* Technical consistency improvements (bidirectional scope, cache semantics, validation requirements).
+
 ## draft-sheffer-tls-pqc-continuity-00
 
 Initial version.

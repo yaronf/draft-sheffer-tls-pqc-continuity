@@ -133,7 +133,7 @@ that the sender's end-entity certificate is associated with. `SignatureScheme` i
 
 The `algorithm_validity_period` field is the time duration, in seconds, that the
 sender commits to continue to present a certificate that enables this
-signature scheme. The time duration is measured starting with the TLS handshake
+signature scheme. The time duration is measured starting from the current TLS handshake
 and is unrelated to any particular certificate or its lifecycle. A value of zero
 indicates no post-handshake commitment.
 
@@ -191,6 +191,8 @@ will, provided the peer indicates acceptance of these algorithms.
 
 This obligation is analogous to maintaining HSTS continuity: once a commitment is made,
 the sender MUST avoid reverting to classical certificates until expiry of `algorithm_validity_period`.
+
+If a traditional (non-PQC) certificate is used, the sender SHOULD send the extension with no extension data to indicate support for this mechanism.
 
 ## Operational Considerations
 

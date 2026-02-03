@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-02-01T02:45:04.132813+00:00",
+  "timestamp": "2026-02-03T02:31:39.621189+00:00",
   "repo": "yaronf/draft-sheffer-tls-pqc-continuity",
   "labels": [
     {
@@ -132,6 +132,74 @@
           "comments": []
         }
       ]
+    },
+    {
+      "number": 2,
+      "id": "PR_kwDOP3oGhM7Aw4lS",
+      "title": "Language consistency improvements",
+      "url": "https://github.com/yaronf/draft-sheffer-tls-pqc-continuity/pull/2",
+      "state": "MERGED",
+      "author": "yaronf",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "- Standardize terminology: use \"PQC\" consistently instead of \"PQ\"\r\n- Standardize MitM capitalization (was \"MiTM\")\r\n- Fix field name references: use `algorithm_validity_period` consistently\r\n- Add code formatting to `pq_cert_available` identifier\r\n- Fix RFC 2119 keyword: change \"should\" to \"SHOULD\"\r\n- Add missing comma in abstract after \"TLS layer\"\r\n- Improve clarity: \"this extension\" instead of \"the extension\"\r\n- Complete IANA section: add \"registry.\" to request sentence\r\n- Fix IANA table spacing: \"CH, CR, CT\" (was \"CH, CR,CT\")",
+      "createdAt": "2026-02-01T21:34:16Z",
+      "updatedAt": "2026-02-02T06:51:12Z",
+      "baseRepository": "yaronf/draft-sheffer-tls-pqc-continuity",
+      "baseRefName": "main",
+      "baseRefOid": "059a1b1cfc90235e478e90776c519e57ad251bb9",
+      "headRepository": "yaronf/draft-sheffer-tls-pqc-continuity",
+      "headRefName": "ys-copyedit",
+      "headRefOid": "2769529b207bf5ba8caa0d883f6b29a13afadb9f",
+      "closedAt": "2026-02-02T06:51:12Z",
+      "mergedAt": "2026-02-02T06:51:12Z",
+      "mergedBy": "tireddy2",
+      "mergeCommit": {
+        "oid": "57c1ee03053c30eaf145ff2b35327ac06c4268fd"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOP3oGhM7exzK1",
+          "commit": {
+            "abbreviatedOid": "2769529"
+          },
+          "author": "tireddy2",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-02-02T06:51:00Z",
+          "updatedAt": "2026-02-02T06:51:00Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "id": "PR_kwDOP3oGhM7A8570",
+      "title": "Technical consistency improvements",
+      "url": "https://github.com/yaronf/draft-sheffer-tls-pqc-continuity/pull/3",
+      "state": "OPEN",
+      "author": "yaronf",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "## Summary\n\nThis PR addresses technical consistency issues identified in the draft:\n\n- **Bidirectional scope clarification**: Abstract and introduction now explicitly state the mechanism works peer-to-peer, with typical use being client-caching-server but also supporting server-caching-client\n- **Cache update logic**: Clarified that when switching algorithms, use the new validity period from the extension\n- **Zero value semantics**: Defined that `algorithm_validity_period` of zero means don't cache (if no cache exists) or clear cache (if exists)\n- **Validation requirements**: Specified that `signature_algorithm` must match certificate and must be a PQC algorithm\n- **Extension presence logic**: Clarified that when using traditional (non-PQC) certificate, sender should send extension with no data to indicate support\n- **Commitment timing**: Clarified that duration is measured from the current TLS handshake\n\n## Changes\n\nAll changes improve clarity and consistency without changing the fundamental protocol design.",
+      "createdAt": "2026-02-02T15:46:10Z",
+      "updatedAt": "2026-02-02T15:50:21Z",
+      "baseRepository": "yaronf/draft-sheffer-tls-pqc-continuity",
+      "baseRefName": "main",
+      "baseRefOid": "57c1ee03053c30eaf145ff2b35327ac06c4268fd",
+      "headRepository": "yaronf/draft-sheffer-tls-pqc-continuity",
+      "headRefName": "ys-consistency",
+      "headRefOid": "9fdd75734cf1a2df556846f975f3472904e77558",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
     }
   ]
 }

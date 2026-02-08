@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-02-05T02:27:42.405524+00:00",
+  "timestamp": "2026-02-08T02:50:38.868489+00:00",
   "repo": "yaronf/draft-sheffer-tls-pqc-continuity",
   "labels": [
     {
@@ -49,7 +49,24 @@
       "color": "ffffff"
     }
   ],
-  "issues": [],
+  "issues": [
+    {
+      "number": 4,
+      "id": "I_kwDOP3oGhM7ojsYC",
+      "title": "Client certificates",
+      "url": "https://github.com/yaronf/draft-sheffer-tls-pqc-continuity/issues/4",
+      "state": "OPEN",
+      "author": "yaronf",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "From EKR:\n\nIn S 3.1 you say that this can be used for both server authentication\nand client authentication, but the setting isn't really symmetrical.\nS 3.2 says:\n\n\u00a0 \u00a0* \u00a0The peer SHOULD include the cached algorithm in the\n\u00a0 \u00a0 \u00a0 signature_algorithms extension of its ClientHello (or\n\u00a0 \u00a0 \u00a0 CertificateRequest for servers), and MUST NOT include legacy (non-\n\u00a0 \u00a0 \u00a0 PQC) algorithms.\n\nI don't see how this works: the client (usually) knows the server's\nidentity in advance but the server usually does not know the client's\nin advance, so how does it know whether it has cached information or\nnot prior to receiving the client's certificate. One might attempt to\nresolve this by just saying that the server should send its ordinary\nsignature_algorithms and then reject any non-PQ algorithms from the\nclient, but I don't think that quite works as-is because the client\nmight initially prefer PQ and then later not prefer PQ leading to a\nfailure. At least, I think you would need a warning that you shouldn't\nadvertise this extension as a client unless you are committing to\nalways sending a PQ cert if possible.",
+      "createdAt": "2026-02-05T13:45:34Z",
+      "updatedAt": "2026-02-05T13:45:34Z",
+      "closedAt": null,
+      "comments": []
+    }
+  ],
   "pulls": [
     {
       "number": 1,

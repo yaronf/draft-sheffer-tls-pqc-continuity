@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-02-08T02:50:38.868489+00:00",
+  "timestamp": "2026-02-10T02:44:03.575629+00:00",
   "repo": "yaronf/draft-sheffer-tls-pqc-continuity",
   "labels": [
     {
@@ -63,6 +63,78 @@
       "body": "From EKR:\n\nIn S 3.1 you say that this can be used for both server authentication\nand client authentication, but the setting isn't really symmetrical.\nS 3.2 says:\n\n\u00a0 \u00a0* \u00a0The peer SHOULD include the cached algorithm in the\n\u00a0 \u00a0 \u00a0 signature_algorithms extension of its ClientHello (or\n\u00a0 \u00a0 \u00a0 CertificateRequest for servers), and MUST NOT include legacy (non-\n\u00a0 \u00a0 \u00a0 PQC) algorithms.\n\nI don't see how this works: the client (usually) knows the server's\nidentity in advance but the server usually does not know the client's\nin advance, so how does it know whether it has cached information or\nnot prior to receiving the client's certificate. One might attempt to\nresolve this by just saying that the server should send its ordinary\nsignature_algorithms and then reject any non-PQ algorithms from the\nclient, but I don't think that quite works as-is because the client\nmight initially prefer PQ and then later not prefer PQ leading to a\nfailure. At least, I think you would need a warning that you shouldn't\nadvertise this extension as a client unless you are committing to\nalways sending a PQ cert if possible.",
       "createdAt": "2026-02-05T13:45:34Z",
       "updatedAt": "2026-02-05T13:45:34Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 5,
+      "id": "I_kwDOP3oGhM7pMwTK",
+      "title": "Cite EKR's blog",
+      "url": "https://github.com/yaronf/draft-sheffer-tls-pqc-continuity/issues/5",
+      "state": "OPEN",
+      "author": "yaronf",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "https://educatedguesswork.org/posts/pq-emergency/",
+      "createdAt": "2026-02-08T09:55:24Z",
+      "updatedAt": "2026-02-08T09:55:24Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 6,
+      "id": "I_kwDOP3oGhM7pNT6q",
+      "title": "Certificate chains",
+      "url": "https://github.com/yaronf/draft-sheffer-tls-pqc-continuity/issues/6",
+      "state": "OPEN",
+      "author": "yaronf",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "Mention that the entire chain must be PQ-signed for PQ resistance, even if this draft cannot mandate it.",
+      "createdAt": "2026-02-08T11:38:33Z",
+      "updatedAt": "2026-02-08T11:38:33Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 7,
+      "id": "I_kwDOP3oGhM7pNch9",
+      "title": "Add a section about CDNs and middleboxes",
+      "url": "https://github.com/yaronf/draft-sheffer-tls-pqc-continuity/issues/7",
+      "state": "OPEN",
+      "author": "yaronf",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "CDNs: they are provisioned by the origin server, and it's possible that different CDNs present different chains for the same server. We could say that a server MUST NOT commit to PQC unless all legacy certs are expired/revoked.\n\nMiddleboxes: assuming middleboxes are incentivized NOT to break traffic, we could say that middleboxes MUST NOT commit to anything. A problem remains if a MB is a PQC client but not PQC server and the origin server already committed. (This breakage would apply to an HSTS solution, too).\n\nIn any case, commitments are cached per origin server  (DNS name) and not the whole chain, because an attacker replaces the whole chain.",
+      "createdAt": "2026-02-08T12:09:46Z",
+      "updatedAt": "2026-02-08T17:32:45Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "yaronf",
+          "authorAssociation": "OWNER",
+          "body": "The most important point is that recovery is super-easy - just get a PQC cert for the server and install it. This would recover everybody other than clients that are behind a misbehaving middlebox.",
+          "createdAt": "2026-02-08T17:32:45Z",
+          "updatedAt": "2026-02-08T17:32:45Z"
+        }
+      ]
+    },
+    {
+      "number": 8,
+      "id": "I_kwDOP3oGhM7pN_Mm",
+      "title": "Design alternatives - add a section/appendix?",
+      "url": "https://github.com/yaronf/draft-sheffer-tls-pqc-continuity/issues/8",
+      "state": "OPEN",
+      "author": "yaronf",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "## Trust Anchors\n\n* In large orgs, DNS is maintained by a different group, so not very convenient to server operators.\n* The DNS record only includes trust anchors. There is nothing to say that trust anchors must be associated with a single algorithm, or even a family of algorithms that's either PQC or non-PQC but not both.\n* With Trust Anchors, a client can still accept a certificate associated with a local anchor, even if that anchor was not published by the server. So rollback is still possible.\n\n## HSTS\n\n* Obviously this is only good for HTTP, not other TLS-based protocols.\n* The main issue with pinning (middleboxes can cause breakage) is still there. This can be a malicious or a breached middlebox.\n* Mixing layers, e.g. the app layer must be aware of the exact list of PQ algorithms.\n* An attacker who has taken over the origin server can brick it with HSTS, just like with PQC-Continuity.\n* Unlike PQC-C, HSTS is potentially vulnerable to application-level attacks (e.g. attacks initiated from the client side with XSS), where response splitting is used to cause [poisoning](https://owasp.org/www-community/attacks/Cache_Poisoning?utm_source=chatgpt.com) of the client-side cache.",
+      "createdAt": "2026-02-08T13:46:02Z",
+      "updatedAt": "2026-02-08T13:46:02Z",
       "closedAt": null,
       "comments": []
     }

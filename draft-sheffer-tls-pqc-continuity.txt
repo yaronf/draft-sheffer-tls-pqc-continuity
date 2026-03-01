@@ -5,8 +5,8 @@
 Transport Layer Security                                      Y. Sheffer
 Internet-Draft                                                    Intuit
 Intended status: Standards Track                                T. Reddy
-Expires: 6 August 2026                                             Nokia
-                                                         2 February 2026
+Expires: 2 September 2026                                          Nokia
+                                                            1 March 2026
 
 
  PQC Continuity: Downgrade Protection for TLS Servers Migrating to PQC
@@ -23,13 +23,17 @@ Abstract
    quantum-capable adversaries exist.
 
    To defend against this, this document defines a TLS extension that
-   allows a client to cache a server's declared commitment to present
-   PQC or composite certificates for a specified duration.  On
-   subsequent connections, clients enforce that cached commitment and
-   reject traditional-only certificates that conflict with it.  This
+   allows a TLS peer (typically a client) to cache another peer's
+   (typically a server's) declared commitment to present PQC or
+   composite certificates for a specified duration.  On subsequent
+   connections, the caching peer enforces that cached commitment and
+   rejects traditional-only certificates that conflict with it.  This
    mechanism, inspired by HTTP Strict Transport Security (HSTS) but
    operating at the TLS layer, provides PQC downgrade protection without
    requiring changes to certificate authority (CA) infrastructure.
+   Although we expect the more common use case to be clients caching
+   server commitments, the mechanism applies symmetrically to server
+   caching of client certificate commitments as well.
 
 About This Document
 
@@ -59,7 +63,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 6 August 2026.
+   This Internet-Draft will expire on 2 September 2026.
 
 Copyright Notice
 
@@ -88,7 +92,8 @@ Table of Contents
    4.  Security Considerations
    5.  IANA Considerations
    6.  Document History
-     6.1.  draft-sheffer-tls-pqc-continuity-00
+     6.1.  draft-sheffer-tls-pqc-continuity-01
+     6.2.  draft-sheffer-tls-pqc-continuity-00
    Acknowledgments
    References
      Normative References
@@ -121,9 +126,10 @@ Table of Contents
    servers claiming PQC support revert to traditional credentials only.
 
    To prevent such downgrade attacks, this document defines a TLS
-   extension that enables the TLS client to cache an indication that the
-   server is able to present a (Composite or pure) PQC certificate, for
-   some duration of time, e.g. one year.  As a result:
+   extension that enables a TLS peer (typically a client) to cache an
+   indication that another peer is able to present a (Composite or pure)
+   PQC certificate, for some duration of time, e.g. one year.  As a
+   result:
 
    *  Clients reconnecting to an already known server within the
       validity period are protected from rollback to classic
@@ -136,10 +142,10 @@ Table of Contents
       client from gaining protection once it later observes a PQC
       commitment from a legitimate server.
 
-   The explicitly communicated caching time allows clients to implement
-   a caching policy with no risk of sudden breakage, and allows servers
-   to revert to traditional certificates if they ever see the need to do
-   so.
+   The explicitly communicated caching time allows peers to implement a
+   caching policy with no risk of sudden breakage, and allows
+   certificate holders to revert to traditional certificates if they
+   ever see the need to do so.
 
    This extension is modeled on HSTS [RFC6797], but whereas HSTS is at
    the HTTP layer, this extension is implemented at the TLS layer.
@@ -207,9 +213,9 @@ Table of Contents
    The algorithm_validity_period field is the time duration, in seconds,
    that the sender commits to continue to present a certificate that
    enables this signature scheme.  The time duration is measured
-   starting with the TLS handshake and is unrelated to any particular
-   certificate or its lifecycle.  A value of zero indicates no post-
-   handshake commitment.
+   starting from the current TLS handshake and is unrelated to any
+   particular certificate or its lifecycle.  A value of zero indicates
+   no post-handshake commitment.
 
 3.2.  Algorithm Selection
 
@@ -234,9 +240,13 @@ Table of Contents
    1.  If the recipient holds no cached information for the sender, and
        the sender includes a non-empty extension:
 
-       *  The recipient SHOULD cache the provided information after the
-          handshake is completed successfully and after the extension's
-          data has been validated.
+       *  If the algorithm_validity_period is zero, the recipient MUST
+          NOT cache the information.
+
+       *  Otherwise, the recipient SHOULD cache the provided information
+          after the handshake is completed successfully and after
+          validating that the signature_algorithm matches the sender's
+          certificate and is a PQC algorithm.
 
        *  The recipient MAY choose to cache the signature algorithm for
           a shorter period than specified.
@@ -244,10 +254,13 @@ Table of Contents
    2.  If the recipient holds unexpired cached information for the
        sender, and receives a returned extension from the sender:
 
-       *  The recipient SHOULD validate the signature_algorithm relative
-          to the certificate being presented and SHOULD extend its cache
-          period if the received time value would expire later than its
-          current cache expiry.
+       *  If the algorithm_validity_period is zero, the recipient MUST
+          clear the cached information for this sender.
+
+       *  Otherwise, the recipient SHOULD validate the
+          signature_algorithm relative to the certificate being
+          presented and SHOULD extend its cache period if the received
+          time value would expire later than its current cache expiry.
 
        *  It SHOULD NOT accept an algorithm_validity_period value if it
           would decrease its existing value (within a few seconds'
@@ -255,8 +268,8 @@ Table of Contents
 
        *  It SHOULD replace its cached signature algorithm for the
           sender by a different PQC algorithm if such is sent in the
-          extension, and in this case, it SHOULD use the validity time
-          as-is.
+          extension, and in this case, it SHOULD use the new validity
+          period from the extension.
 
    3.  If the recipient holds unexpired cached information for the
        sender, and receives no returned extension from the sender, the
@@ -281,6 +294,10 @@ Table of Contents
    This obligation is analogous to maintaining HSTS continuity: once a
    commitment is made, the sender MUST avoid reverting to classical
    certificates until expiry of algorithm_validity_period.
+
+   If a traditional (non-PQC) certificate is used, the sender SHOULD
+   send the extension with no extension data to indicate support for
+   this mechanism.
 
 3.5.  Operational Considerations
 
@@ -313,7 +330,15 @@ Table of Contents
 
    RFC Editor: please remove before publication.
 
-6.1.  draft-sheffer-tls-pqc-continuity-00
+6.1.  draft-sheffer-tls-pqc-continuity-01
+
+   *  Language consistency improvements (terminology, field names,
+      formatting).
+
+   *  Technical consistency improvements (bidirectional scope, cache
+      semantics, validation requirements).
+
+6.2.  draft-sheffer-tls-pqc-continuity-00
 
    Initial version.
 
@@ -353,9 +378,9 @@ Informative References
               Ounsworth, M., Gray, J., Pala, M., Klaußner, J., and S.
               Fluhrer, "Composite ML-DSA for use in X.509 Public Key
               Infrastructure", Work in Progress, Internet-Draft, draft-
-              ietf-lamps-pq-composite-sigs-14, 7 January 2026,
+              ietf-lamps-pq-composite-sigs-15, 24 February 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-lamps-
-              pq-composite-sigs-14>.
+              pq-composite-sigs-15>.
 
    [I-D.ietf-lamps-x509-slhdsa]
               Bashiri, K., Fluhrer, S., Gazdag, S., Van Geest, D., and
@@ -369,9 +394,9 @@ Informative References
               Reddy.K, T., Gray, J., and Y. Sheffer, "X.509 Extensions
               for PQC or Composite Certificate Hosting Continuity", Work
               in Progress, Internet-Draft, draft-reddy-lamps-x509-pq-
-              commit-00, 12 October 2025,
+              commit-01, 25 February 2026,
               <https://datatracker.ietf.org/doc/html/draft-reddy-lamps-
-              x509-pq-commit-00>.
+              x509-pq-commit-01>.
 
    [RFC6797]  Hodges, J., Jackson, C., and A. Barth, "HTTP Strict
               Transport Security (HSTS)", RFC 6797,

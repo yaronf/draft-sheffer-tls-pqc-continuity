@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-02-10T02:44:03.575629+00:00",
+  "timestamp": "2026-03-03T02:31:52.855467+00:00",
   "repo": "yaronf/draft-sheffer-tls-pqc-continuity",
   "labels": [
     {
@@ -269,24 +269,26 @@
       "id": "PR_kwDOP3oGhM7A8570",
       "title": "Technical consistency improvements",
       "url": "https://github.com/yaronf/draft-sheffer-tls-pqc-continuity/pull/3",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "yaronf",
       "authorAssociation": "OWNER",
       "assignees": [],
       "labels": [],
       "body": "## Summary\n\nThis PR addresses technical consistency issues identified in the draft:\n\n- **Bidirectional scope clarification**: Abstract and introduction now explicitly state the mechanism works peer-to-peer, with typical use being client-caching-server but also supporting server-caching-client\n- **Cache update logic**: Clarified that when switching algorithms, use the new validity period from the extension\n- **Zero value semantics**: Defined that `algorithm_validity_period` of zero means don't cache (if no cache exists) or clear cache (if exists)\n- **Validation requirements**: Specified that `signature_algorithm` must match certificate and must be a PQC algorithm\n- **Extension presence logic**: Clarified that when using traditional (non-PQC) certificate, sender should send extension with no data to indicate support\n- **Commitment timing**: Clarified that duration is measured from the current TLS handshake\n\n## Changes\n\nAll changes improve clarity and consistency without changing the fundamental protocol design.",
       "createdAt": "2026-02-02T15:46:10Z",
-      "updatedAt": "2026-02-02T15:50:21Z",
+      "updatedAt": "2026-03-01T16:10:32Z",
       "baseRepository": "yaronf/draft-sheffer-tls-pqc-continuity",
       "baseRefName": "main",
       "baseRefOid": "57c1ee03053c30eaf145ff2b35327ac06c4268fd",
       "headRepository": "yaronf/draft-sheffer-tls-pqc-continuity",
       "headRefName": "ys-consistency",
       "headRefOid": "9fdd75734cf1a2df556846f975f3472904e77558",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2026-03-01T16:10:32Z",
+      "mergedAt": "2026-03-01T16:10:32Z",
+      "mergedBy": "yaronf",
+      "mergeCommit": {
+        "oid": "fafee671aa8bc5b63fafba8f41f46730c9af2ed6"
+      },
       "comments": [],
       "reviews": []
     }

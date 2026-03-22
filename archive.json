@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-03-03T02:31:52.855467+00:00",
+  "timestamp": "2026-03-22T02:36:53.243094+00:00",
   "repo": "yaronf/draft-sheffer-tls-pqc-continuity",
   "labels": [
     {
@@ -62,9 +62,17 @@
       "labels": [],
       "body": "From EKR:\n\nIn S 3.1 you say that this can be used for both server authentication\nand client authentication, but the setting isn't really symmetrical.\nS 3.2 says:\n\n\u00a0 \u00a0* \u00a0The peer SHOULD include the cached algorithm in the\n\u00a0 \u00a0 \u00a0 signature_algorithms extension of its ClientHello (or\n\u00a0 \u00a0 \u00a0 CertificateRequest for servers), and MUST NOT include legacy (non-\n\u00a0 \u00a0 \u00a0 PQC) algorithms.\n\nI don't see how this works: the client (usually) knows the server's\nidentity in advance but the server usually does not know the client's\nin advance, so how does it know whether it has cached information or\nnot prior to receiving the client's certificate. One might attempt to\nresolve this by just saying that the server should send its ordinary\nsignature_algorithms and then reject any non-PQ algorithms from the\nclient, but I don't think that quite works as-is because the client\nmight initially prefer PQ and then later not prefer PQ leading to a\nfailure. At least, I think you would need a warning that you shouldn't\nadvertise this extension as a client unless you are committing to\nalways sending a PQ cert if possible.",
       "createdAt": "2026-02-05T13:45:34Z",
-      "updatedAt": "2026-02-05T13:45:34Z",
+      "updatedAt": "2026-03-21T17:31:27Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "yaronf",
+          "authorAssociation": "OWNER",
+          "body": "@ekr comment about asymmetry is on point. It may be possible to implement a solution for client certs along the lines he describes (Cert Request still offers mixed algs, Client's Cert rejected if not PQC). So technically this is feasible.\n\nHowever the solution becomes super complicated when we look at management of the commitment cache for client certs. The cache may need to be indexed by SAN, by full DN etc., depending on the specific deployment and exactly how the cert is used to authenticate the client. In many cases an attacker could forge a slightly different but equivalent client cert and bypass the cache. All in all, high complexity and low benefit - we should remove any claims re: client certs from the draft.\n\nDetailed analysis [here](https://github.com/yaronf/pqc-continuity-poc/blob/main/docs/analysis-client-identity-cache-key.md).",
+          "createdAt": "2026-03-21T17:31:27Z",
+          "updatedAt": "2026-03-21T17:31:27Z"
+        }
+      ]
     },
     {
       "number": 5,
@@ -135,6 +143,54 @@
       "body": "## Trust Anchors\n\n* In large orgs, DNS is maintained by a different group, so not very convenient to server operators.\n* The DNS record only includes trust anchors. There is nothing to say that trust anchors must be associated with a single algorithm, or even a family of algorithms that's either PQC or non-PQC but not both.\n* With Trust Anchors, a client can still accept a certificate associated with a local anchor, even if that anchor was not published by the server. So rollback is still possible.\n\n## HSTS\n\n* Obviously this is only good for HTTP, not other TLS-based protocols.\n* The main issue with pinning (middleboxes can cause breakage) is still there. This can be a malicious or a breached middlebox.\n* Mixing layers, e.g. the app layer must be aware of the exact list of PQ algorithms.\n* An attacker who has taken over the origin server can brick it with HSTS, just like with PQC-Continuity.\n* Unlike PQC-C, HSTS is potentially vulnerable to application-level attacks (e.g. attacks initiated from the client side with XSS), where response splitting is used to cause [poisoning](https://owasp.org/www-community/attacks/Cache_Poisoning?utm_source=chatgpt.com) of the client-side cache.",
       "createdAt": "2026-02-08T13:46:02Z",
       "updatedAt": "2026-02-08T13:46:02Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 9,
+      "id": "I_kwDOP3oGhM71KXyP",
+      "title": "Remove Signature Algorithm field from the extension",
+      "url": "https://github.com/yaronf/draft-sheffer-tls-pqc-continuity/issues/9",
+      "state": "OPEN",
+      "author": "yaronf",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "Since the draft allows the server to move between different PQC algorithms, this field adds parsing complexity and provides little or no benefit. Drop.",
+      "createdAt": "2026-03-21T17:33:53Z",
+      "updatedAt": "2026-03-21T17:33:53Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 10,
+      "id": "I_kwDOP3oGhM71KY7_",
+      "title": "Implementation Status section",
+      "url": "https://github.com/yaronf/draft-sheffer-tls-pqc-continuity/issues/10",
+      "state": "OPEN",
+      "author": "yaronf",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "Add an \"Implementation Status\" section to the draft per RFC 7942 (BCP 205).",
+      "createdAt": "2026-03-21T17:35:25Z",
+      "updatedAt": "2026-03-21T17:35:25Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 11,
+      "id": "I_kwDOP3oGhM71Kacz",
+      "title": "Malformed extension data",
+      "url": "https://github.com/yaronf/draft-sheffer-tls-pqc-continuity/issues/11",
+      "state": "OPEN",
+      "author": "yaronf",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "When the CT ext is malformed, client must abort the handshake with `decode_error`.",
+      "createdAt": "2026-03-21T17:38:02Z",
+      "updatedAt": "2026-03-21T17:38:02Z",
       "closedAt": null,
       "comments": []
     }

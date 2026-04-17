@@ -129,6 +129,10 @@ A client that receives `pq_cert_available` in the server's Certificate message M
 
 A server that receives `pq_cert_available` in the ClientHello MUST reject extension data whose length is not zero; it MUST abort the handshake with a `decode_error` alert.
 
+In the server's Certificate message, `pq_cert_available` MUST appear only in the `extensions` field of the first `CertificateEntry` (the end-entity certificate) {{!RFC8446}}. A server MUST NOT attach this extension to any other `CertificateEntry`. A client that finds `pq_cert_available` on any other `CertificateEntry` MUST abort the handshake with an `illegal_parameter` alert.
+
+If the first `CertificateEntry` includes non-empty `pq_cert_available` extension data but the end-entity certificate is not PQC under the client's policy, the client MUST abort the handshake with an `illegal_parameter` alert.
+
 ## Cache indexing
 
 The client MUST key each cache entry to the server identity verified per {{!RFC9525}}.
@@ -151,8 +155,7 @@ A client that supports this extension MUST behave as follows:
 non-empty extension:
 
    * If the `algorithm_validity_period` is zero, the client MUST NOT cache the information.
-   * Otherwise, the client SHOULD cache the commitment after the handshake is
-     completed successfully and after validating that the server's end-entity certificate is PQC.
+   * Otherwise, the client SHOULD cache the commitment after the handshake completes successfully.
    * The client SHOULD record the server's actual signature algorithm for subsequent ClientHello `signature_algorithms` selection.
    * The client MAY choose to cache for a shorter period than specified.
 
@@ -170,7 +173,7 @@ modify its cache.
 
 ## Server behavior
 
-1. A server that receives client support for this extension SHOULD send this extension in its Certificate message when it uses a
+1. A server that receives client support for this extension SHOULD send this extension in the `extensions` field of the first `CertificateEntry` only when it uses a
 PQC signature algorithm.
 2. The server MUST keep track of the time duration it has committed to, and use
    a PQC certificate to authenticate itself for that entire duration. The server
@@ -180,7 +183,7 @@ will, provided the client indicates acceptance of these algorithms.
 This obligation is analogous to maintaining HSTS continuity: once a commitment is made,
 the server MUST avoid reverting to classical certificates until expiry of `algorithm_validity_period`.
 
-If a traditional (non-PQC) certificate is used, the server SHOULD send the extension with no extension data to indicate support for this mechanism. If a PQC certificate is used, the server MUST send exactly the four-octet `algorithm_validity_period` (not an empty extension).
+If a traditional (non-PQC) certificate is used, the server SHOULD send the extension with no extension data on the first `CertificateEntry` only. If a PQC certificate is used, the server MUST send exactly the four-octet `algorithm_validity_period` on the first `CertificateEntry` only (not an empty extension).
 
 ## Operational Considerations
 
@@ -213,6 +216,7 @@ RFC Editor: please remove before publication.
 * Normative scope: TLS clients caching server commitments only; cache indexing (RFC 9525). Informative note on out-of-scope symmetric use case.
 * Certificate extension: `algorithm_validity_period` only (GitHub #9).
 * Malformed extension length: `decode_error` (GitHub #11).
+* EE-only Certificate extension placement; commitment inconsistent with non-PQC EE: `illegal_parameter` (GitHub #12).
 
 ## draft-sheffer-tls-pqc-continuity-01
 

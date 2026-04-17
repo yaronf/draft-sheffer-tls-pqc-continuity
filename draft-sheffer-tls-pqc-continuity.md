@@ -40,7 +40,7 @@ informative:
 As the Internet transitions toward post-quantum cryptography (PQC), many TLS servers will continue supporting
 traditional certificates to maintain compatibility with legacy clients. However, this coexistence introduces a significant vulnerability: an undetected rollback attack, where a malicious actor strips the PQC or Composite certificate and forces the use of a traditional certificate once quantum-capable adversaries exist.
 
-To defend against this, this document defines a TLS extension that allows a TLS peer (typically a client) to cache another peer's (typically a server's) declared commitment to present PQC or composite certificates for a specified duration. On subsequent connections, the caching peer enforces that cached commitment and rejects traditional-only certificates that conflict with it. This mechanism, inspired by HTTP Strict Transport Security (HSTS) but operating at the TLS layer, provides PQC downgrade protection without requiring changes to certificate authority (CA) infrastructure. Although we expect the more common use case to be clients caching server commitments, the mechanism applies symmetrically to server caching of client certificate commitments as well.
+To defend against this, this document defines a TLS extension that allows a TLS client to cache a server's declared commitment to present PQC or composite certificates for a specified duration. On subsequent connections, the client enforces that cached commitment and rejects traditional-only certificates that conflict with it. This mechanism, inspired by HTTP Strict Transport Security (HSTS) but operating at the TLS layer, provides PQC downgrade protection without requiring changes to certificate authority (CA) infrastructure.
 
 --- middle
 
@@ -66,8 +66,8 @@ certificates, present only traditional ones, and conduct MitM attacks. Relying p
 mechanisms to detect when servers claiming PQC support revert to traditional credentials only.
 
 To prevent such downgrade attacks, this document defines a TLS extension that enables a
-TLS peer (typically a client) to cache an indication that another peer is able to
-present a (Composite or pure) PQC certificate, for some duration of time, e.g. one year. As a result:
+TLS client to cache an indication that the server is able to
+present a (composite or pure) PQC certificate, for some duration of time, e.g. one year. As a result:
 
 * Clients reconnecting to an already known server within the validity period are protected
 from rollback to classic certificates.
@@ -77,15 +77,14 @@ from rollback to classic certificates.
   intercepted or downgraded do not prevent the client from gaining protection
   once it later observes a PQC commitment from a legitimate server.
 
-The explicitly communicated caching time allows peers to implement a caching policy with no risk of sudden
+The explicitly communicated caching time allows clients and server operators to implement a caching policy with no risk of sudden
 breakage, and allows certificate holders to revert to traditional certificates if they ever see the need to do so.
 
 This extension is modeled on HSTS {{?RFC6797}}, but whereas HSTS is at the HTTP layer, this extension
 is implemented at the TLS layer.
 
-On the open Web, we expect this extension to be used mainly for caching the fact that a server is
-presenting a PQC or composite certificate. However, in other use cases such as service-to-service traffic,
-it would often make sense to use it for both clients and servers.
+Normative requirements in this document apply to TLS clients caching server commitments only.
+Informative: a symmetric design (TLS servers caching client certificate commitments in mutual TLS) is not specified here since it would add significant complexity and we believe this complexity is not justified in most use cases.
 
 An alternative approach to downgrade attacks, described in {{?I-D.reddy-lamps-x509-pq-commit}},
 uses specially marked certificates to denote the server's long-term commitment
@@ -98,22 +97,19 @@ to use PQC algorithms. See {{solution-comparison}} for a comparison between the 
 
 # The pq_cert_available Extension
 
-The following section defines a TLS extension that describes a TLS peer's commitment to present PQC
-credentials.
+The following section defines a TLS extension that describes a server's commitment to present PQC
+credentials to clients that support this mechanism.
 
 ## Extension Definition
 
 This is a TLS extension, as per sec. 4.2 of {{!RFC8446}}. The extension type for `pq_cert_available` is TBD by IANA.
-It MAY appear in the ClientHello (CH) message, CertificateRequest (CR) message and in Certificate (CT) messages sent by either client or server.
+It MAY appear in the ClientHello (CH) message and in the server's Certificate message.
 
 A supporting client MUST include this extension in its ClientHello message, with no extension data.
 
 If the client indicates support, the server MAY include the extension in its Certificate message.
-For symmetry, the server MAY also send an empty `pq_cert_available` extension
-in the CertificateRequest to indicate support for this mechanism.
-A client MUST NOT include `pq_cert_available` in its Certificate message unless the server has first included the extension in a CertificateRequest message.
 
-The extension data when sent in the Certificate message is:
+The extension data when sent in the server's Certificate message is:
 
 ~~~
 struct {
@@ -124,82 +120,79 @@ struct {
 
 This extension follows the format of TLS 1.3 Certificate message extensions as defined in Sec. 4.4.2 of {{RFC8446}}.
 
-Note on terminology: Since the extension may be used by either client or server, the term "sender" is used for the peer that sent the
-extension in its Certificate message and "recipient" for the other peer.
-
 The `signature_algorithm` in this extension MUST be the signature algorithm
-that the sender's end-entity certificate is associated with. `SignatureScheme` is defined by
+that the server's end-entity certificate is associated with. `SignatureScheme` is defined by
 {{RFC8446}}.
 
 The `algorithm_validity_period` field is the time duration, in seconds, that the
-sender commits to continue to present a certificate that enables this
+server commits to continue to present a certificate that enables this
 signature scheme. The time duration is measured starting from the current TLS handshake
 and is unrelated to any particular certificate or its lifecycle. A value of zero
 indicates no post-handshake commitment.
 
+## Cache indexing
+
+The client MUST key each cache entry to the server identity verified per {{!RFC9525}}.
+
 ## Algorithm Selection
 
-If one of the peers holds unexpired cached information for the other peer:
+If the client holds unexpired cached information for the server:
 
-   * The peer SHOULD include the cached algorithm in the `signature_algorithms` extension of its
-ClientHello (or CertificateRequest for servers),
-and MUST NOT include legacy (non-PQC) algorithms.
+   * The client SHOULD include the cached algorithm in the `signature_algorithms` extension of its
+ClientHello and MUST NOT include legacy (non-PQC) algorithms.
    * It MAY include other PQC signature algorithms, according to local policy.
 
 As a result, the handshake would fail if a rollback attack is attempted.
 
-## Recipient Behavior
+## Client behavior
 
-A recipient that supports this extension MUST behave as follows:
+A client that supports this extension MUST behave as follows:
 
-1. If the recipient holds no cached information for the sender, and the sender includes a
+1. If the client holds no cached information for the server, and the server includes a
 non-empty extension:
 
-   * If the `algorithm_validity_period` is zero, the recipient MUST NOT cache the information.
-   * Otherwise, the recipient SHOULD cache the provided information after the handshake is
+   * If the `algorithm_validity_period` is zero, the client MUST NOT cache the information.
+   * Otherwise, the client SHOULD cache the provided information after the handshake is
      completed successfully and after validating that the `signature_algorithm` matches the
-     sender's certificate and is a PQC algorithm.
-   * The recipient MAY choose to cache the signature algorithm for a shorter period than specified.
+     server's certificate and is a PQC algorithm.
+   * The client MAY choose to cache the signature algorithm for a shorter period than specified.
 
-2. If the recipient holds unexpired cached information for the sender, and receives a returned extension from the sender:
+2. If the client holds unexpired cached information for the server, and receives the extension from the server:
 
-   * If the `algorithm_validity_period` is zero, the recipient MUST clear the cached information for this sender.
-   * Otherwise, the recipient SHOULD validate the `signature_algorithm` relative to the
+   * If the `algorithm_validity_period` is zero, the client MUST clear the cached information for this server.
+   * Otherwise, the client SHOULD validate the `signature_algorithm` relative to the
      certificate being presented and SHOULD extend its cache period if the
      received time value would expire later than its current cache expiry.
    * It SHOULD NOT accept an `algorithm_validity_period` value if it would decrease
      its existing value (within a few seconds' tolerance).
-   * It SHOULD replace its cached signature algorithm for the sender by a
+   * It SHOULD replace its cached signature algorithm for the server with a
      different PQC algorithm if such is sent in the extension, and in this case,
 it SHOULD use the new validity period from the extension.
 
-3. If the recipient holds unexpired cached information for the sender, and
-   receives no returned extension from the sender, the recipient SHOULD NOT
+3. If the client holds unexpired cached information for the server, and
+   receives no extension from the server in the Certificate message, the client SHOULD NOT
 modify its cache.
 
-<cref>OPEN ISSUE: do we discuss how the cache is indexed? Service identity per RFC 9525?</cref>
+## Server behavior
 
-## Sender Behavior
-
-1. A TLS client or server that receives an indication that its peer supports this
-   extension SHOULD send this extension in the Certificate message, provided a
-PQC signature algorithm is used.
-2. The sender MUST keep track of the time duration it has committed to, and use
-   a PQC certificate to authenticate itself for that entire duration. The sender
+1. A server that receives client support for this extension SHOULD send this extension in its Certificate message when it uses a
+PQC signature algorithm.
+2. The server MUST keep track of the time duration it has committed to, and use
+   a PQC certificate to authenticate itself for that entire duration. The server
 MAY change its certificates and may switch between PQC signature algorithms at
-will, provided the peer indicates acceptance of these algorithms.
+will, provided the client indicates acceptance of these algorithms.
 
 This obligation is analogous to maintaining HSTS continuity: once a commitment is made,
-the sender MUST avoid reverting to classical certificates until expiry of `algorithm_validity_period`.
+the server MUST avoid reverting to classical certificates until expiry of `algorithm_validity_period`.
 
-If a traditional (non-PQC) certificate is used, the sender SHOULD send the extension with no extension data to indicate support for this mechanism.
+If a traditional (non-PQC) certificate is used, the server SHOULD send the extension with no extension data to indicate support for this mechanism.
 
 ## Operational Considerations
 
-This extension establishes a (potentially) long-term commitment of the sender
+This extension establishes a (potentially) long-term commitment of the server
 to support PQC signature algorithms. As such, we recommend that deployers first
 experiment with short validity periods (e.g. one day), and only when satisfied
-that peers populate and depopulate their cache correctly, they can move to a longer
+that clients populate and depopulate their cache correctly, they can move to a longer
 duration. In the case of HSTS, lifetimes are commonly set to one year.
 
 # Security Considerations
@@ -213,12 +206,16 @@ IANA is requested to assign a new value from the “TLS ExtensionType Values” 
 
 | Value | Extension Name    |  TLS 1.3  | Recommended | Reference     |
 | ----: | ----------------- |  :-----:  | :---------: | :------------ |
-|   TBD | pq_cert_available | CH, CR, CT |      Y      | This document |
+|   TBD | pq_cert_available | CH, CT |      Y      | This document |
 
 
 # Document History
 
 RFC Editor: please remove before publication.
+
+## draft-sheffer-tls-pqc-continuity-02
+
+* Normative scope: TLS clients caching server commitments only; cache indexing (RFC 9525). Informative note on out-of-scope symmetric use case.
 
 ## draft-sheffer-tls-pqc-continuity-01
 

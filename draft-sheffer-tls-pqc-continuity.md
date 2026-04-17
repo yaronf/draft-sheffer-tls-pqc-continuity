@@ -125,6 +125,10 @@ server commits to continue to present a PQC end-entity certificate. The time dur
 and is unrelated to any particular certificate or its lifecycle. A value of zero
 indicates no post-handshake commitment.
 
+A client that receives `pq_cert_available` in the server's Certificate message MUST reject extension data whose length is neither zero nor four octets; it MUST abort the handshake with a `decode_error` alert.
+
+A server that receives `pq_cert_available` in the ClientHello MUST reject extension data whose length is not zero; it MUST abort the handshake with a `decode_error` alert.
+
 ## Cache indexing
 
 The client MUST key each cache entry to the server identity verified per {{!RFC9525}}.
@@ -208,6 +212,7 @@ RFC Editor: please remove before publication.
 
 * Normative scope: TLS clients caching server commitments only; cache indexing (RFC 9525). Informative note on out-of-scope symmetric use case.
 * Certificate extension: `algorithm_validity_period` only (GitHub #9).
+* Malformed extension length: `decode_error` (GitHub #11).
 
 ## draft-sheffer-tls-pqc-continuity-01
 

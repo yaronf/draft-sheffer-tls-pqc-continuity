@@ -109,24 +109,19 @@ A supporting client MUST include this extension in its ClientHello message, with
 
 If the client indicates support, the server MAY include the extension in its Certificate message.
 
-The extension data when sent in the server's Certificate message is:
+The extension data when sent in the server's Certificate message is either empty (no octets) or:
 
 ~~~
 struct {
-    SignatureScheme signature_algorithm;
     uint32 algorithm_validity_period;
 }
 ~~~
 
 This extension follows the format of TLS 1.3 Certificate message extensions as defined in Sec. 4.4.2 of {{RFC8446}}.
 
-The `signature_algorithm` in this extension MUST be the signature algorithm
-that the server's end-entity certificate is associated with. `SignatureScheme` is defined by
-{{RFC8446}}.
 
 The `algorithm_validity_period` field is the time duration, in seconds, that the
-server commits to continue to present a certificate that enables this
-signature scheme. The time duration is measured starting from the current TLS handshake
+server commits to continue to present a PQC end-entity certificate. The time duration is measured starting from the current TLS handshake
 and is unrelated to any particular certificate or its lifecycle. A value of zero
 indicates no post-handshake commitment.
 
@@ -138,9 +133,9 @@ The client MUST key each cache entry to the server identity verified per {{!RFC9
 
 If the client holds unexpired cached information for the server:
 
-   * The client SHOULD include the cached algorithm in the `signature_algorithms` extension of its
-ClientHello and MUST NOT include legacy (non-PQC) algorithms.
-   * It MAY include other PQC signature algorithms, according to local policy.
+   * The client MUST NOT offer legacy-only values in `signature_algorithms`: it MUST include one or more PQC-capable schemes.
+   * It SHOULD include schemes consistent with enforcing the commitment, e.g. those it derived from the server's certificate on a prior connection or those it uses for this cache entry, all subject to local policy.
+   * It MAY include additional PQC signature algorithms according to local policy.
 
 As a result, the handshake would fail if a rollback attack is attempted.
 
@@ -152,22 +147,18 @@ A client that supports this extension MUST behave as follows:
 non-empty extension:
 
    * If the `algorithm_validity_period` is zero, the client MUST NOT cache the information.
-   * Otherwise, the client SHOULD cache the provided information after the handshake is
-     completed successfully and after validating that the `signature_algorithm` matches the
-     server's certificate and is a PQC algorithm.
-   * The client MAY choose to cache the signature algorithm for a shorter period than specified.
+   * Otherwise, the client SHOULD cache the commitment after the handshake is
+     completed successfully and after validating that the server's end-entity certificate is PQC.
+   * The client SHOULD record the server's actual signature algorithm for subsequent ClientHello `signature_algorithms` selection.
+   * The client MAY choose to cache for a shorter period than specified.
 
 2. If the client holds unexpired cached information for the server, and receives the extension from the server:
 
    * If the `algorithm_validity_period` is zero, the client MUST clear the cached information for this server.
-   * Otherwise, the client SHOULD validate the `signature_algorithm` relative to the
-     certificate being presented and SHOULD extend its cache period if the
+   * Otherwise, the client SHOULD validate that the end-entity certificate remains PQC and SHOULD extend its cache period if the
      received time value would expire later than its current cache expiry.
    * It SHOULD NOT accept an `algorithm_validity_period` value if it would decrease
      its existing value (within a few seconds' tolerance).
-   * It SHOULD replace its cached signature algorithm for the server with a
-     different PQC algorithm if such is sent in the extension, and in this case,
-it SHOULD use the new validity period from the extension.
 
 3. If the client holds unexpired cached information for the server, and
    receives no extension from the server in the Certificate message, the client SHOULD NOT
@@ -185,7 +176,7 @@ will, provided the client indicates acceptance of these algorithms.
 This obligation is analogous to maintaining HSTS continuity: once a commitment is made,
 the server MUST avoid reverting to classical certificates until expiry of `algorithm_validity_period`.
 
-If a traditional (non-PQC) certificate is used, the server SHOULD send the extension with no extension data to indicate support for this mechanism.
+If a traditional (non-PQC) certificate is used, the server SHOULD send the extension with no extension data to indicate support for this mechanism. If a PQC certificate is used, the server MUST send exactly the four-octet `algorithm_validity_period` (not an empty extension).
 
 ## Operational Considerations
 
@@ -216,6 +207,7 @@ RFC Editor: please remove before publication.
 ## draft-sheffer-tls-pqc-continuity-02
 
 * Normative scope: TLS clients caching server commitments only; cache indexing (RFC 9525). Informative note on out-of-scope symmetric use case.
+* Certificate extension: `algorithm_validity_period` only (GitHub #9).
 
 ## draft-sheffer-tls-pqc-continuity-01
 

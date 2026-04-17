@@ -13,6 +13,7 @@
 /.refcache
 /.venv/
 /.vscode/
+.DS_Store
 /lib
 /node_modules/
 /versioned/

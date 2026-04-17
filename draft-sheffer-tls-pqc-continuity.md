@@ -100,6 +100,10 @@ to use PQC algorithms. See {{solution-comparison}} for a comparison between the 
 The following section defines a TLS extension that describes a server's commitment to present PQC
 credentials to clients that support this mechanism.
 
+## PQC end-entity certificate
+
+For this document, a PQC end-entity certificate is one that is not traditional-only: the EE signature employs post-quantum cryptography, whether as a pure PQ algorithm (for example PKIX profiles in {{?I-D.ietf-lamps-dilithium-certificates}} and related LAMPS work) or as a composite PQ algorithm {{?I-D.ietf-lamps-pq-composite-sigs}}. Pure PQ and composite PQ are treated identically by this document. Which EE certificates satisfy that classification in a deployment is left to client policy; this text is informative context, not a closed list of algorithms.
+
 ## Extension Definition
 
 This is a TLS extension, as per sec. 4.2 of {{!RFC8446}}. The extension type for `pq_cert_available` is TBD by IANA.
@@ -225,6 +229,7 @@ Implemented comments received on the mailing list and learnings from an implemen
 * Cache key: RFC 9525 identity, port, TLS vs DTLS; optional ALPN (GitHub #13).
 * Remove "few seconds" tolerance when decreasing cached validity (GitHub #15).
 * `algorithm_validity_period` zero: withdrawal semantics; stale-cache operations (GitHub #16).
+* Define PQC EE cert: pure PQ and composite PQ one class (GitHub #17).
 
 ## draft-sheffer-tls-pqc-continuity-01
 

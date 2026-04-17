@@ -122,8 +122,7 @@ This extension follows the format of TLS 1.3 Certificate message extensions as d
 
 The `algorithm_validity_period` field is the time duration, in seconds, that the
 server commits to continue to present a PQC end-entity certificate. The time duration is measured starting from the current TLS handshake
-and is unrelated to any particular certificate or its lifecycle. A value of zero
-indicates no post-handshake commitment.
+and is unrelated to any particular certificate or its lifecycle. A duration of zero indicates no positive commitment (not a new validity window). When the end-entity certificate is PQC, that is how the server withdraws a prior commitment (see Client behavior).
 
 A client that receives `pq_cert_available` in the server's Certificate message MUST reject extension data whose length is neither zero nor four octets; it MUST abort the handshake with a `decode_error` alert.
 
@@ -195,6 +194,8 @@ experiment with short validity periods (e.g. one day), and only when satisfied
 that clients populate and depopulate their cache correctly, they can move to a longer
 duration. In the case of HSTS, lifetimes are commonly set to one year.
 
+Advertising `algorithm_validity_period` of zero does not clear every client's cache at the same instant. Clients that never complete another handshake to this server keep enforcing until their earlier cached expiry or until they observe zero on a completed handshake. Operators should assume overlap up to the longest validity they previously published while clients may still have been caching.
+
 # Security Considerations
 
 TODO Security
@@ -215,12 +216,15 @@ RFC Editor: please remove before publication.
 
 ## draft-sheffer-tls-pqc-continuity-02
 
+Implemented comments received on the mailing list and learnings from an implementation.
+
 * Normative scope: TLS clients caching server commitments only; cache indexing (RFC 9525). Informative note on out-of-scope symmetric use case.
 * Certificate extension: `algorithm_validity_period` only (GitHub #9).
 * Malformed extension length: `decode_error` (GitHub #11).
 * EE-only Certificate extension placement; commitment inconsistent with non-PQC EE: `illegal_parameter` (GitHub #12).
 * Cache key: RFC 9525 identity, port, TLS vs DTLS; optional ALPN (GitHub #13).
 * Remove "few seconds" tolerance when decreasing cached validity (GitHub #15).
+* `algorithm_validity_period` zero: withdrawal semantics; stale-cache operations (GitHub #16).
 
 ## draft-sheffer-tls-pqc-continuity-01
 

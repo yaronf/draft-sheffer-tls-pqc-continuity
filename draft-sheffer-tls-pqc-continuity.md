@@ -135,7 +135,9 @@ If the first `CertificateEntry` includes non-empty `pq_cert_available` extension
 
 ## Cache indexing
 
-The client MUST key each cache entry to the server identity verified per {{!RFC9525}}.
+The client MUST key each cache entry by the authenticated TLS server identity from {{!RFC9525}}, the port, and whether the handshake is connection-oriented (TLS) or datagram (DTLS). Entries that differ in any of these MUST NOT be merged.
+
+The client MAY include the negotiated ALPN {{!RFC7301}} value in the key when the implementation treats application protocol as part of service identity for this cache.
 
 ## Algorithm Selection
 
@@ -217,6 +219,7 @@ RFC Editor: please remove before publication.
 * Certificate extension: `algorithm_validity_period` only (GitHub #9).
 * Malformed extension length: `decode_error` (GitHub #11).
 * EE-only Certificate extension placement; commitment inconsistent with non-PQC EE: `illegal_parameter` (GitHub #12).
+* Cache key: RFC 9525 identity, port, TLS vs DTLS; optional ALPN (GitHub #13).
 
 ## draft-sheffer-tls-pqc-continuity-01
 

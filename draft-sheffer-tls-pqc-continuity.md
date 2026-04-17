@@ -166,8 +166,8 @@ non-empty extension:
    * If the `algorithm_validity_period` is zero, the client MUST clear the cached information for this server.
    * Otherwise, the client SHOULD validate that the end-entity certificate remains PQC and SHOULD extend its cache period if the
      received time value would expire later than its current cache expiry.
-   * It SHOULD NOT accept an `algorithm_validity_period` value if it would decrease
-     its existing value (within a few seconds' tolerance).
+   * It SHOULD silently ignore an `algorithm_validity_period` value if it would decrease
+     its existing cached expiry.
 
 3. If the client holds unexpired cached information for the server, and
    receives no extension from the server in the Certificate message, the client SHOULD NOT
@@ -220,6 +220,7 @@ RFC Editor: please remove before publication.
 * Malformed extension length: `decode_error` (GitHub #11).
 * EE-only Certificate extension placement; commitment inconsistent with non-PQC EE: `illegal_parameter` (GitHub #12).
 * Cache key: RFC 9525 identity, port, TLS vs DTLS; optional ALPN (GitHub #13).
+* Remove "few seconds" tolerance when decreasing cached validity (GitHub #15).
 
 ## draft-sheffer-tls-pqc-continuity-01
 

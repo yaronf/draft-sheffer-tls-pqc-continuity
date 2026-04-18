@@ -33,7 +33,12 @@ author:
 normative:
 
 informative:
-
+  RescorlaPQEmergency:
+    title: "PQ emergency (Educated Guesswork)"
+    target: https://educatedguesswork.org/posts/pq-emergency/
+    author:
+      ins: E. Rescorla
+      name: Eric Rescorla
 
 --- abstract
 
@@ -53,7 +58,7 @@ from PQC authentication. The size of the legacy client base often drives the
 decision to keep traditional certificates. Relevant PQC work includes
 {{?I-D.ietf-lamps-dilithium-certificates}} (ML-DSA),
 {{?I-D.ietf-lamps-x509-slhdsa}} (SLH-DSA), and
-{{?I-D.ietf-lamps-pq-composite-sigs}} (composites).  Not only must legacy
+{{?I-D.ietf-lamps-pq-composite-sigs}} (composites). Not only must legacy
 clients be supported by servers for years, new clients that support PQC are
 also incented to accept traditional certificates, to retain connectivity to
 legacy servers.
@@ -64,6 +69,9 @@ and must be revoked, regardless of legacy disruption. However, a CRQC may remain
 attackers to exploit classical algorithms secretly. In such cases, adversaries could strip PQC or composite
 certificates, present only traditional ones, and conduct MitM attacks. Relying parties therefore need
 mechanisms to detect when servers claiming PQC support revert to traditional credentials only.
+
+{{RescorlaPQEmergency}} is an informal, accessible description of the threat
+of CRQC emergence and the difficulties of mounting a coordinated response.
 
 To prevent such downgrade attacks, this document defines a TLS extension that enables a
 TLS client to cache an indication that the server is able to

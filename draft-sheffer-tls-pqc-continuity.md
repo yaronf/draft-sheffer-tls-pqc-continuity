@@ -108,9 +108,15 @@ to use PQC algorithms. See {{solution-comparison}} for a comparison between the 
 The following section defines a TLS extension that describes a server's commitment to present PQC
 credentials to clients that support this mechanism.
 
-## PQC end-entity certificate
+## PQC end-entity certificate {#pqc-ee}
 
 For this document, a PQC end-entity certificate is one that is not traditional-only: the EE signature employs post-quantum cryptography, whether as a pure PQ algorithm (for example PKIX profiles in {{?I-D.ietf-lamps-dilithium-certificates}} and related LAMPS work) or as a composite PQ algorithm {{?I-D.ietf-lamps-pq-composite-sigs}}. Pure PQ and composite PQ are treated identically by this document. Which EE certificates satisfy that classification in a deployment is left to client policy; this text is informative context, not a closed list of algorithms.
+
+## Certificate chain
+
+Post-quantum authentication requires signatures along the entire path to be resistant to quantum-capable adversaries; a PQC end-entity certificate paired with a classically signed intermediate does not provide this property. For a fully PQ-signed path through the PKI, trust anchors would also need to be PQ-capable where they participate in validation; this document does not specify trust-store policy, and many deployments will continue to rely on classical roots.
+
+When the client requires a PQC end-entity certificate for that handshake (including because the server sends non-empty `pq_cert_available` extension data on the first `CertificateEntry`, or because the client holds unexpired cached information for this server per Client behavior), the client MUST apply its PQC policy to every `CertificateEntry` in the server's `Certificate` message using the same criterion as in {{pqc-ee}}. If any `CertificateEntry` does not satisfy this requirement, the client MUST abort the handshake with a `certificate_unknown` alert.
 
 ## Extension Definition
 
@@ -141,8 +147,6 @@ A client that receives `pq_cert_available` in the server's Certificate message M
 A server that receives `pq_cert_available` in the ClientHello MUST reject extension data whose length is not zero; it MUST abort the handshake with a `decode_error` alert.
 
 In the server's Certificate message, `pq_cert_available` MUST appear only in the `extensions` field of the first `CertificateEntry` (the end-entity certificate) {{!RFC8446}}. A server MUST NOT attach this extension to any other `CertificateEntry`. A client that finds `pq_cert_available` on any other `CertificateEntry` MUST abort the handshake with an `illegal_parameter` alert.
-
-If the first `CertificateEntry` includes non-empty `pq_cert_available` extension data but the end-entity certificate is not PQC under the client's policy, the client MUST abort the handshake with an `illegal_parameter` alert.
 
 ## Cache indexing
 
@@ -175,7 +179,7 @@ non-empty extension:
 2. If the client holds unexpired cached information for the server, and receives the extension from the server:
 
    * If the `algorithm_validity_period` is zero, the client MUST clear the cached information for this server.
-   * Otherwise, the client SHOULD validate that the end-entity certificate remains PQC and SHOULD extend its cache period if the
+   * Otherwise, the client SHOULD validate that the end-entity certificate remains PQC, that every `CertificateEntry` satisfies {{pqc-ee}}, and SHOULD extend its cache period if the
      received time value would expire later than its current cache expiry.
    * It SHOULD silently ignore an `algorithm_validity_period` value if it would decrease
      its existing cached expiry.
@@ -197,6 +201,8 @@ This obligation is analogous to maintaining HSTS continuity: once a commitment i
 the server MUST avoid reverting to classical certificates until expiry of `algorithm_validity_period`.
 
 If a traditional (non-PQC) certificate is used, the server SHOULD send the extension with no extension data on the first `CertificateEntry` only. If a PQC certificate is used, the server MUST send exactly the four-octet `algorithm_validity_period` on the first `CertificateEntry` only (not an empty extension).
+
+When the server sends non-empty `pq_cert_available` extension data on the first `CertificateEntry`, every `CertificateEntry` in the server's `Certificate` message MUST be PQC under the same definition as in {{pqc-ee}}.
 
 ## Operational Considerations
 
@@ -225,6 +231,10 @@ IANA is requested to assign a new value from the “TLS ExtensionType Values” 
 # Document History
 
 RFC Editor: please remove before publication.
+
+## draft-sheffer-tls-pqc-continuity-03
+
+* Certificate chain: mixed (PQC EE with non-PQC issuer chain) MUST be rejected; `certificate_unknown` (GitHub #6).
 
 ## draft-sheffer-tls-pqc-continuity-02
 

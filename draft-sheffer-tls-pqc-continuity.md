@@ -49,7 +49,7 @@ To defend against this, this document defines a TLS extension that allows a TLS 
 
 --- middle
 
-# Introduction
+# Introduction {#introduction}
 
 The migration to post-quantum cryptography (PQC) will be gradual. Servers will
 likely host both traditional and PQC (or composite) certificates to maintain
@@ -112,7 +112,7 @@ credentials to clients that support this mechanism.
 
 For this document, a PQC end-entity certificate is one that is not traditional-only: the EE signature employs post-quantum cryptography, whether as a pure PQ algorithm (for example PKIX profiles in {{?I-D.ietf-lamps-dilithium-certificates}} and related LAMPS work) or as a composite PQ algorithm {{?I-D.ietf-lamps-pq-composite-sigs}}. Pure PQ and composite PQ are treated identically by this document. Which EE certificates satisfy that classification in a deployment is left to client policy; this text is informative context, not a closed list of algorithms.
 
-## Certificate chain
+## Certificate chain {#certificate-chain}
 
 Post-quantum authentication requires signatures along the entire path to be resistant to quantum-capable adversaries; a PQC end-entity certificate paired with a classically signed intermediate does not provide this property. For a fully PQ-signed path through the PKI, trust anchors would also need to be PQ-capable where they participate in validation; this document does not specify trust-store policy, and many deployments will continue to rely on classical roots.
 
@@ -148,7 +148,7 @@ A server that receives `pq_cert_available` in the ClientHello MUST reject extens
 
 In the server's Certificate message, `pq_cert_available` MUST appear only in the `extensions` field of the first `CertificateEntry` (the end-entity certificate) {{!RFC8446}}. A server MUST NOT attach this extension to any other `CertificateEntry`. A client that finds `pq_cert_available` on any other `CertificateEntry` MUST abort the handshake with an `illegal_parameter` alert.
 
-## Cache indexing
+## Cache indexing {#cache-indexing}
 
 The client MUST key each cache entry by the authenticated TLS server identity from {{!RFC9525}}, the port, and whether the handshake is connection-oriented (TLS) or datagram (DTLS). Entries that differ in any of these MUST NOT be merged.
 
@@ -216,8 +216,19 @@ Advertising `algorithm_validity_period` of zero does not clear every client's ca
 
 # Security Considerations
 
-TODO Security
+## First connection and cached state
 
+Protection against downgrade applies only after the client has completed a handshake to the legitimate server and recorded a commitment (see {{introduction}}). Until then, behavior matches the usual trust-on-first-use limitation of channel-based pinning, analogous to HTTP Strict Transport Security (HSTS) {{?RFC6797}}: an active adversary who controls an earlier connection can prevent useful cache population or cause the client to store parameters chosen by the adversary. Cached entries are only as reliable as the authenticated channel that produced them.
+
+Operationally, the damage is limited. If cache population is suppressed, the client would realize that the server is PQC-capable as soon as it connects directly to the server.
+
+## Cache churn and denial of service
+
+A malicious or compromised server can send a different `algorithm_validity_period` (or alternate between zero and non-zero values) on every successful handshake, causing the client to update persistent cache state repeatedly. That can amplify storage I/O and resource use and become a denial-of-service vector against the client. Implementations SHOULD rate-limit or coalesce cache updates per server key (see {{cache-indexing}}), and SHOULD avoid writing to durable storage when the effective commitment or expiry does not meaningfully change.
+
+## Related threats
+
+This mechanism does not replace PKIX validation, name verification, or trust anchor policy; it adds downgrade protection once a legitimate commitment has been observed. Mixed or invalid certificate chains remain out of scope except where this document already requires rejection (see {{certificate-chain}}).
 
 # IANA Considerations
 
@@ -235,6 +246,7 @@ RFC Editor: please remove before publication.
 ## draft-sheffer-tls-pqc-continuity-03
 
 * Certificate chain: mixed (PQC EE with non-PQC issuer chain) MUST be rejected; `certificate_unknown` (GitHub #6).
+* Security Considerations: first-connection trust, cache churn / DoS (GitHub #18).
 
 ## draft-sheffer-tls-pqc-continuity-02
 

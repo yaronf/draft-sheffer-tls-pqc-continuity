@@ -92,7 +92,7 @@ This extension is modeled on HSTS {{?RFC6797}}, but whereas HSTS is at the HTTP 
 is implemented at the TLS layer.
 
 Normative requirements in this document apply to TLS clients caching server commitments only.
-Informative: a symmetric design (TLS servers caching client certificate commitments in mutual TLS) is not specified here since it would add significant complexity and we believe this complexity is not justified in most use cases.
+A symmetric design (TLS servers caching client certificate commitments in mutual TLS) is not specified here since it would add significant complexity and we believe this complexity is not justified in most use cases.
 
 An alternative approach to downgrade attacks, described in {{?I-D.reddy-lamps-x509-pq-commit}},
 uses specially marked certificates to denote the server's long-term commitment
@@ -204,7 +204,7 @@ If a traditional (non-PQC) certificate is used, the server SHOULD send the exten
 
 When the server sends non-empty `pq_cert_available` extension data on the first `CertificateEntry`, every `CertificateEntry` in the server's `Certificate` message MUST be PQC under the same definition as in {{pqc-ee}}.
 
-## Operational Considerations
+# Operational Considerations
 
 This extension establishes a (potentially) long-term commitment of the server
 to support PQC signature algorithms. As such, we recommend that deployers first
@@ -213,6 +213,18 @@ that clients populate and depopulate their cache correctly, they can move to a l
 duration. In the case of HSTS, lifetimes are commonly set to one year.
 
 Advertising `algorithm_validity_period` of zero does not clear every client's cache at the same instant. Clients that never complete another handshake to this server keep enforcing until their earlier cached expiry or until they observe zero on a completed handshake. Operators should assume overlap up to the longest validity they previously published while clients may still have been caching.
+
+## CDNs and changing certificate chains
+
+The same logical server (same DNS name and application identity) may present different certificate chains over time, for example when using a CDN with different points of presence, or multiple CAs. Cache entries are keyed by authenticated server identity ({{cache-indexing}}), not by a particular chain. Operators SHOULD ensure that every chain presented while a non-empty commitment is in effect satisfies {{certificate-chain}} when PQC is required.
+
+## TLS-terminating intermediaries
+
+Enterprise inspection proxies are the common case: they terminate TLS toward the client and present a certificate issued under a locally trusted CA rather than the origin's Web PKI chain. The same normative constraint applies to any on-path endpoint that is not operated by the origin but presents a server `Certificate` message to the client.
+
+An endpoint that terminates TLS toward the client and is not operated by the origin MUST NOT send non-empty `pq_cert_available` extension data unless it presents a PQC end-entity certificate chain toward the client that satisfies {{certificate-chain}} and can honor the commitment for `algorithm_validity_period` on that client-facing connection. Otherwise it MUST NOT inject a non-empty commitment on behalf of the origin.
+
+Many TLS clients only ever connect over paths validated with public Web PKI; for them, the rules elsewhere in this document apply without additional policy. Clients that are configured to trust an enterprise or security appliance for inspection typically see most or all origins through that appliance unless the deployment makes an explicit exception; the user or organization has already accepted that the appliance terminates TLS and can present its own certificates. Implementations in such environments MAY choose how to cache or enforce `pq_cert_available` when validation uses only inspection roots---for example by not applying a commitment recorded on an inspection path when the same name is later reached on a direct Web PKI path, or by accepting traditional chains when the path chains only to inspection CAs. This document does not mandate those details. HTTP Public Key Pinning {{?RFC7469}} (Historic) described an analogous exception in Section 2.6: user agents could disable pin validation when the validated chain terminated at a user-defined trust anchor rather than a built-in anchor.
 
 # Security Considerations
 
@@ -247,6 +259,7 @@ RFC Editor: please remove before publication.
 
 * Certificate chain: mixed (PQC EE with non-PQC issuer chain) MUST be rejected; `certificate_unknown` (GitHub #6).
 * Security Considerations: first-connection trust, cache churn / DoS (GitHub #18).
+* Operational: CDNs; TLS-terminating intermediaries (commitment injection, optional client behavior) (GitHub #7).
 
 ## draft-sheffer-tls-pqc-continuity-02
 

@@ -13,6 +13,8 @@
 /.refcache
 /.venv/
 /.vscode/
+.DS_Store
+PR-PLAN.md
 /lib
 /node_modules/
 /versioned/

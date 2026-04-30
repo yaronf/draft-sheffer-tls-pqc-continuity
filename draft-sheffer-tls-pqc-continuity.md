@@ -218,7 +218,7 @@ The same logical server (same DNS name and application identity) may present dif
 
 ## TLS-terminating intermediaries
 
-Enterprise inspection proxies are the common case: they terminate TLS toward the client and present a certificate issued under a locally trusted CA rather than the origin's Web PKI chain. The same normative constraint applies to any on-path endpoint that is not operated by the origin but presents a server `Certificate` message to the client.
+Enterprise inspection proxies are common in practice: they terminate TLS toward the client and present a certificate issued under a locally trusted CA rather than the origin's Web PKI chain. The same normative constraint applies to any on-path endpoint that is not operated by the origin but presents a server `Certificate` message to the client.
 
 An endpoint that terminates TLS toward the client and is not operated by the origin MUST NOT send non-empty `pq_cert_available` extension data unless it presents a PQC end-entity certificate chain toward the client that satisfies {{certificate-chain}} and can honor the commitment for `algorithm_validity_period` on that client-facing connection. Otherwise it MUST NOT inject a non-empty commitment on behalf of the origin.
 

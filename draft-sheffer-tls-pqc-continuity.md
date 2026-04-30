@@ -152,8 +152,6 @@ In the server's Certificate message, `pq_cert_available` MUST appear only in the
 
 The client MUST key each cache entry by the authenticated TLS server identity from {{!RFC9525}}, the port, and whether the handshake is connection-oriented (TLS) or datagram (DTLS). Entries that differ in any of these MUST NOT be merged.
 
-The client MAY include the negotiated ALPN {{!RFC7301}} value in the key when the implementation treats application protocol as part of service identity for this cache.
-
 ## Algorithm Selection
 
 If the client holds unexpired cached information for the server:
@@ -269,7 +267,7 @@ Implemented comments received on the mailing list and learnings from an implemen
 * Certificate extension: `algorithm_validity_period` only (GitHub #9).
 * Malformed extension length: `decode_error` (GitHub #11).
 * EE-only Certificate extension placement; commitment inconsistent with non-PQC EE: `illegal_parameter` (GitHub #12).
-* Cache key: RFC 9525 identity, port, TLS vs DTLS; optional ALPN (GitHub #13).
+* Cache key: RFC 9525 identity, port, TLS vs DTLS (GitHub #13).
 * Remove "few seconds" tolerance when decreasing cached validity (GitHub #15).
 * `algorithm_validity_period` zero: withdrawal semantics; stale-cache operations (GitHub #16).
 * Define PQC EE cert: pure PQ and composite PQ one class (GitHub #17).

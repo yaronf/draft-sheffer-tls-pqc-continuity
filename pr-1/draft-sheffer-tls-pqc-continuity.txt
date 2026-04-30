@@ -5,8 +5,8 @@
 Transport Layer Security                                      Y. Sheffer
 Internet-Draft                                                    Intuit
 Intended status: Standards Track                                T. Reddy
-Expires: 19 October 2026                                           Nokia
-                                                           17 April 2026
+Expires: 1 November 2026                                           Nokia
+                                                           30 April 2026
 
 
  PQC Continuity: Downgrade Protection for TLS Servers Migrating to PQC
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 19 October 2026.
+   This Internet-Draft will expire on 1 November 2026.
 
 Copyright Notice
 
@@ -242,10 +242,6 @@ Table of Contents
    connection-oriented (TLS) or datagram (DTLS).  Entries that differ in
    any of these MUST NOT be merged.
 
-   The client MAY include the negotiated ALPN [RFC7301] value in the key
-   when the implementation treats application protocol as part of
-   service identity for this cache.
-
 3.4.  Algorithm Selection
 
    If the client holds unexpired cached information for the server:
@@ -379,8 +375,7 @@ Table of Contents
    *  EE-only Certificate extension placement; commitment inconsistent
       with non-PQC EE: illegal_parameter (GitHub #12).
 
-   *  Cache key: RFC 9525 identity, port, TLS vs DTLS; optional ALPN
-      (GitHub #13).
+   *  Cache key: RFC 9525 identity, port, TLS vs DTLS (GitHub #13).
 
    *  Remove "few seconds" tolerance when decreasing cached validity
       (GitHub #15).
@@ -416,11 +411,6 @@ Normative References
               DOI 10.17487/RFC2119, March 1997,
               <https://www.rfc-editor.org/rfc/rfc2119>.
 
-   [RFC7301]  Friedl, S., Popov, A., Langley, A., and E. Stephan,
-              "Transport Layer Security (TLS) Application-Layer Protocol
-              Negotiation Extension", RFC 7301, DOI 10.17487/RFC7301,
-              July 2014, <https://www.rfc-editor.org/rfc/rfc7301>.
-
    [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
               2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
               May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
@@ -449,9 +439,9 @@ Informative References
               Fluhrer, "Composite Module-Lattice-Based Digital Signature
               Algorithm (ML-DSA) for use in X.509 Public Key
               Infrastructure", Work in Progress, Internet-Draft, draft-
-              ietf-lamps-pq-composite-sigs-18, 9 April 2026,
+              ietf-lamps-pq-composite-sigs-19, 21 April 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-lamps-
-              pq-composite-sigs-18>.
+              pq-composite-sigs-19>.
 
    [I-D.ietf-lamps-x509-slhdsa]
               Bashiri, K., Fluhrer, S., Gazdag, S., Van Geest, D., and

@@ -253,6 +253,11 @@ IANA is requested to assign a new value from the “TLS ExtensionType Values” 
 
 RFC Editor: please remove before publication.
 
+## draft-sheffer-tls-pqc-continuity-04
+
+* Acknowledgments (GitHub #19).
+* GitHub #4 closed with repository comment only (CertificateRequest / mutual-TLS client caching path obsolete after client-only normative scope in -02; no further draft change).
+
 ## draft-sheffer-tls-pqc-continuity-03
 
 * Certificate chain: mixed (PQC EE with non-PQC issuer chain) MUST be rejected; `certificate_unknown` (GitHub #6).
@@ -284,8 +289,7 @@ Initial version.
 # Acknowledgments
 {:numbered="false"}
 
-TODO acknowledge.
-
+Thanks to Eric Rescorla, Yaroslav Rosomakho, Muhammad Usama Sardar, and Scott Fluhrer for helpful discussion on the TLS mailing list.
 
 --- back
 

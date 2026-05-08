@@ -5,8 +5,8 @@
 Transport Layer Security                                      Y. Sheffer
 Internet-Draft                                                    Intuit
 Intended status: Standards Track                                T. Reddy
-Expires: 1 November 2026                                           Nokia
-                                                           30 April 2026
+Expires: 9 November 2026                                           Nokia
+                                                              8 May 2026
 
 
  PQC Continuity: Downgrade Protection for TLS Servers Migrating to PQC
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 1 November 2026.
+   This Internet-Draft will expire on 9 November 2026.
 
 Copyright Notice
 
@@ -203,8 +203,7 @@ Table of Contents
    certificate paired with a classically signed intermediate does not
    provide this property.  For a fully PQ-signed path through the PKI,
    trust anchors would also need to be PQ-capable where they participate
-   in validation; this document does not specify trust-store policy, and
-   many deployments will continue to rely on classical roots.
+   in validation; this document does not specify trust-store policy.
 
    When the client requires a PQC end-entity certificate for that
    handshake (including because the server sends non-empty
@@ -441,16 +440,18 @@ Table of Contents
    resource use and become a denial-of-service vector against the
    client.  Implementations SHOULD rate-limit or coalesce cache updates
    per server key (see Section 3.4), and SHOULD avoid writing to durable
-   storage when the effective commitment or expiry does not meaningfully
-   change.
+   storage when the update is minor compared to what is already stored:
+   for example when the received algorithm_validity_period differs by at
+   most one day (86400 seconds) from the value already associated with
+   this cache entry, such as from small jitter or rounding.
 
 5.3.  Related threats
 
    This mechanism does not replace PKIX validation, name verification,
    or trust anchor policy; it adds downgrade protection once a
-   legitimate commitment has been observed.  Mixed or invalid
-   certificate chains remain out of scope except where this document
-   already requires rejection (see Section 3.2).
+   legitimate commitment has been observed.  Traditional certificate
+   chains remain out of scope except where this document already
+   requires rejection (see Section 3.2).
 
 6.  IANA Considerations
 

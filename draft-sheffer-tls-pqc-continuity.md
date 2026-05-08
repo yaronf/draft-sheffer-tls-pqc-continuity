@@ -114,7 +114,7 @@ For this document, a PQC end-entity certificate is one that is not traditional-o
 
 ## Certificate chain {#certificate-chain}
 
-Post-quantum authentication requires signatures along the entire path to be resistant to quantum-capable adversaries; a PQC end-entity certificate paired with a classically signed intermediate does not provide this property. For a fully PQ-signed path through the PKI, trust anchors would also need to be PQ-capable where they participate in validation; this document does not specify trust-store policy, and many deployments will continue to rely on classical roots.
+Post-quantum authentication requires signatures along the entire path to be resistant to quantum-capable adversaries; a PQC end-entity certificate paired with a classically signed intermediate does not provide this property. For a fully PQ-signed path through the PKI, trust anchors would also need to be PQ-capable where they participate in validation; this document does not specify trust-store policy.
 
 When the client requires a PQC end-entity certificate for that handshake (including because the server sends non-empty `pq_cert_available` extension data on the first `CertificateEntry`, or because the client holds unexpired cached information for this server per Client behavior), the client MUST apply its PQC policy to every `CertificateEntry` in the server's `Certificate` message using the same criterion as in {{pqc-ee}}. If any `CertificateEntry` does not satisfy this requirement, the client MUST abort the handshake with a `certificate_unknown` alert.
 
@@ -234,11 +234,11 @@ Operationally, the damage is limited. If cache population is suppressed, the cli
 
 ## Cache churn and denial of service
 
-A malicious or compromised server can send a different `algorithm_validity_period` (or alternate between zero and non-zero values) on every successful handshake, causing the client to update persistent cache state repeatedly. That can amplify storage I/O and resource use and become a denial-of-service vector against the client. Implementations SHOULD rate-limit or coalesce cache updates per server key (see {{cache-indexing}}), and SHOULD avoid writing to durable storage when the effective commitment or expiry does not meaningfully change.
+A malicious or compromised server can send a different `algorithm_validity_period` (or alternate between zero and non-zero values) on every successful handshake, causing the client to update persistent cache state repeatedly. That can amplify storage I/O and resource use and become a denial-of-service vector against the client. Implementations SHOULD rate-limit or coalesce cache updates per server key (see {{cache-indexing}}), and SHOULD avoid writing to durable storage when the update is minor compared to what is already stored: for example when the received `algorithm_validity_period` differs by at most one day (86400 seconds) from the value already associated with this cache entry, such as from small jitter or rounding.
 
 ## Related threats
 
-This mechanism does not replace PKIX validation, name verification, or trust anchor policy; it adds downgrade protection once a legitimate commitment has been observed. Mixed or invalid certificate chains remain out of scope except where this document already requires rejection (see {{certificate-chain}}).
+This mechanism does not replace PKIX validation, name verification, or trust anchor policy; it adds downgrade protection once a legitimate commitment has been observed. Traditional certificate chains remain out of scope except where this document already requires rejection (see {{certificate-chain}}).
 
 # IANA Considerations
 

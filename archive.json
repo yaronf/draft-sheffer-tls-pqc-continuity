@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-05-03T03:35:55.950428+00:00",
+  "timestamp": "2026-05-10T03:38:45.667241+00:00",
   "repo": "yaronf/draft-sheffer-tls-pqc-continuity",
   "labels": [
     {
@@ -597,13 +597,13 @@
       "labels": [],
       "body": "Implements the PR-2 batch from the issue plan:\n\n- **#5** \u2014 Introduction: CRQC / rollback threat narrative; informative {{RescorlaPQEmergency}} reference.\n- **#6** \u2014 {{certificate-chain}}: reject mixed chains when PQC is required (`certificate_unknown`).\n- **#7** \u2014 Operational: CDNs / changing chains; TLS-terminating intermediaries and RFC 7469 carve-out analogy.\n- **#18** \u2014 Security Considerations: first-connection trust, cache-churn DoS mitigations.\n\n@tireddy2, requesting your review when you have a chance.\n\nMade with [Cursor](https://cursor.com)",
       "createdAt": "2026-04-30T14:50:04Z",
-      "updatedAt": "2026-05-01T12:18:35Z",
+      "updatedAt": "2026-05-08T14:28:31Z",
       "baseRepository": "yaronf/draft-sheffer-tls-pqc-continuity",
       "baseRefName": "main",
       "baseRefOid": "0af0fdbba83f643624331ca4cddbcffa421ee157",
       "headRepository": "yaronf/draft-sheffer-tls-pqc-continuity",
       "headRefName": "pr-2",
-      "headRefOid": "fb157fcebe05bd7d0bcbf8e90f36333438b1854a",
+      "headRefOid": "8e78f5c5faa25766002ce3a225b0536c772098aa",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -742,6 +742,66 @@
           "createdAt": "2026-05-01T12:18:35Z",
           "updatedAt": "2026-05-01T12:18:35Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOP3oGhM79e_4b",
+          "commit": {
+            "abbreviatedOid": "fb157fc"
+          },
+          "author": "yaronf",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-05-08T13:56:40Z",
+          "updatedAt": "2026-05-08T13:56:40Z",
+          "comments": [
+            {
+              "originalPosition": 64,
+              "body": "I disagree. This mechanism would not achieve its goal if a mixed chain is being used. So we're not saying that mixed chains are forbidden. What we're saying is, you cannot have a mixed chain along with PQC Continuity.\n\nThe first paragraph is basically rationale for the normative text in the second one.",
+              "createdAt": "2026-05-08T13:56:40Z",
+              "updatedAt": "2026-05-08T13:56:41Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOP3oGhM79fCt2",
+          "commit": {
+            "abbreviatedOid": "fb157fc"
+          },
+          "author": "yaronf",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-05-08T13:58:22Z",
+          "updatedAt": "2026-05-08T13:58:22Z",
+          "comments": [
+            {
+              "originalPosition": 108,
+              "body": "You're right, but there's actual normative text here and it's important in practice. Would it be better if we moved it to an appendix?",
+              "createdAt": "2026-05-08T13:58:22Z",
+              "updatedAt": "2026-05-08T13:58:22Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOP3oGhM79fLYX",
+          "commit": {
+            "abbreviatedOid": "fb157fc"
+          },
+          "author": "yaronf",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-05-08T14:03:40Z",
+          "updatedAt": "2026-05-08T14:03:40Z",
+          "comments": [
+            {
+              "originalPosition": 125,
+              "body": "You're probably right that this is a theoretical concern. I don't think any kind of misconfiguration can cause it - you need an actively malicious server for this attack.",
+              "createdAt": "2026-05-08T14:03:40Z",
+              "updatedAt": "2026-05-08T14:03:40Z"
+            }
+          ]
         }
       ]
     }

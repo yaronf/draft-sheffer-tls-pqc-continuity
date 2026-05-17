@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-05-10T03:38:45.667241+00:00",
+  "timestamp": "2026-05-17T03:48:49.617123+00:00",
   "repo": "yaronf/draft-sheffer-tls-pqc-continuity",
   "labels": [
     {
@@ -597,7 +597,7 @@
       "labels": [],
       "body": "Implements the PR-2 batch from the issue plan:\n\n- **#5** \u2014 Introduction: CRQC / rollback threat narrative; informative {{RescorlaPQEmergency}} reference.\n- **#6** \u2014 {{certificate-chain}}: reject mixed chains when PQC is required (`certificate_unknown`).\n- **#7** \u2014 Operational: CDNs / changing chains; TLS-terminating intermediaries and RFC 7469 carve-out analogy.\n- **#18** \u2014 Security Considerations: first-connection trust, cache-churn DoS mitigations.\n\n@tireddy2, requesting your review when you have a chance.\n\nMade with [Cursor](https://cursor.com)",
       "createdAt": "2026-04-30T14:50:04Z",
-      "updatedAt": "2026-05-08T14:28:31Z",
+      "updatedAt": "2026-05-14T09:38:00Z",
       "baseRepository": "yaronf/draft-sheffer-tls-pqc-continuity",
       "baseRefName": "main",
       "baseRefOid": "0af0fdbba83f643624331ca4cddbcffa421ee157",
@@ -800,6 +800,66 @@
               "body": "You're probably right that this is a theoretical concern. I don't think any kind of misconfiguration can cause it - you need an actively malicious server for this attack.",
               "createdAt": "2026-05-08T14:03:40Z",
               "updatedAt": "2026-05-08T14:03:40Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOP3oGhM7_lNCE",
+          "commit": {
+            "abbreviatedOid": "fb157fc"
+          },
+          "author": "tireddy2",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-05-14T06:57:52Z",
+          "updatedAt": "2026-05-14T06:57:53Z",
+          "comments": [
+            {
+              "originalPosition": 108,
+              "body": "Yes, moving to Appendix works for me. ",
+              "createdAt": "2026-05-14T06:57:52Z",
+              "updatedAt": "2026-05-14T06:57:53Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOP3oGhM7_lT8H",
+          "commit": {
+            "abbreviatedOid": "fb157fc"
+          },
+          "author": "tireddy2",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-05-14T07:01:52Z",
+          "updatedAt": "2026-05-14T07:01:52Z",
+          "comments": [
+            {
+              "originalPosition": 125,
+              "body": "If it is a malicious server, it could cause a lot more damage to the client :)\r\n",
+              "createdAt": "2026-05-14T07:01:52Z",
+              "updatedAt": "2026-05-14T07:01:52Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOP3oGhM7_o6-0",
+          "commit": {
+            "abbreviatedOid": "fb157fc"
+          },
+          "author": "tireddy2",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-05-14T09:38:00Z",
+          "updatedAt": "2026-05-14T09:38:00Z",
+          "comments": [
+            {
+              "originalPosition": 64,
+              "body": "The first paragraph says \"many deployments will continue to rely on classical roots\" which may be true currently  but could be cited for years as justification for not migrating the full chain, which undermines the entire purpose of the draft.  I suggest to simplify the text and say something like:\r\nPost-quantum authentication requires signatures along the entire path to be resistant to quantum-capable adversaries; a PQC end-entity certificate paired with a classically signed intermediate does not provide this property.",
+              "createdAt": "2026-05-14T09:38:00Z",
+              "updatedAt": "2026-05-14T09:38:00Z"
             }
           ]
         }

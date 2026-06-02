@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-05-17T03:48:49.617123+00:00",
+  "timestamp": "2026-06-02T04:17:59.065190+00:00",
   "repo": "yaronf/draft-sheffer-tls-pqc-continuity",
   "labels": [
     {
@@ -597,7 +597,7 @@
       "labels": [],
       "body": "Implements the PR-2 batch from the issue plan:\n\n- **#5** \u2014 Introduction: CRQC / rollback threat narrative; informative {{RescorlaPQEmergency}} reference.\n- **#6** \u2014 {{certificate-chain}}: reject mixed chains when PQC is required (`certificate_unknown`).\n- **#7** \u2014 Operational: CDNs / changing chains; TLS-terminating intermediaries and RFC 7469 carve-out analogy.\n- **#18** \u2014 Security Considerations: first-connection trust, cache-churn DoS mitigations.\n\n@tireddy2, requesting your review when you have a chance.\n\nMade with [Cursor](https://cursor.com)",
       "createdAt": "2026-04-30T14:50:04Z",
-      "updatedAt": "2026-05-14T09:38:00Z",
+      "updatedAt": "2026-06-01T09:16:20Z",
       "baseRepository": "yaronf/draft-sheffer-tls-pqc-continuity",
       "baseRefName": "main",
       "baseRefOid": "0af0fdbba83f643624331ca4cddbcffa421ee157",
@@ -860,6 +860,46 @@
               "body": "The first paragraph says \"many deployments will continue to rely on classical roots\" which may be true currently  but could be cited for years as justification for not migrating the full chain, which undermines the entire purpose of the draft.  I suggest to simplify the text and say something like:\r\nPost-quantum authentication requires signatures along the entire path to be resistant to quantum-capable adversaries; a PQC end-entity certificate paired with a classically signed intermediate does not provide this property.",
               "createdAt": "2026-05-14T09:38:00Z",
               "updatedAt": "2026-05-14T09:38:00Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOP3oGhM8AAAABBkFW2w",
+          "commit": {
+            "abbreviatedOid": "8e78f5c"
+          },
+          "author": "yaronf",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-06-01T09:14:45Z",
+          "updatedAt": "2026-06-01T09:14:45Z",
+          "comments": [
+            {
+              "originalPosition": 108,
+              "body": "Thought about it some more, I'd rather keep it as-is, because:\n\n- There's a bit of normative text, which doesn't read well in an appendix.\n- Right now it's under \"operational considerations\", so not the core protocol.",
+              "createdAt": "2026-06-01T09:14:45Z",
+              "updatedAt": "2026-06-01T09:14:45Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOP3oGhM8AAAABBkF8DA",
+          "commit": {
+            "abbreviatedOid": "8e78f5c"
+          },
+          "author": "yaronf",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-06-01T09:16:20Z",
+          "updatedAt": "2026-06-01T09:16:20Z",
+          "comments": [
+            {
+              "originalPosition": 125,
+              "body": "Absolutely. But does that justify removing this section completely?",
+              "createdAt": "2026-06-01T09:16:20Z",
+              "updatedAt": "2026-06-01T09:16:20Z"
             }
           ]
         }

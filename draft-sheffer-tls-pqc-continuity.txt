@@ -96,11 +96,9 @@ Table of Contents
      5.3.  Related threats
    6.  IANA Considerations
    7.  Document History
-     7.1.  draft-sheffer-tls-pqc-continuity-04
-     7.2.  draft-sheffer-tls-pqc-continuity-03
-     7.3.  draft-sheffer-tls-pqc-continuity-02
-     7.4.  draft-sheffer-tls-pqc-continuity-01
-     7.5.  draft-sheffer-tls-pqc-continuity-00
+     7.1.  draft-sheffer-tls-pqc-continuity-02
+     7.2.  draft-sheffer-tls-pqc-continuity-01
+     7.3.  draft-sheffer-tls-pqc-continuity-00
    Acknowledgments
    References
      Normative References
@@ -472,33 +470,16 @@ Table of Contents
 
    RFC Editor: please remove before publication.
 
-7.1.  draft-sheffer-tls-pqc-continuity-04
-
-   *  Acknowledgments (GitHub #19).
-
-   *  GitHub #4 closed with repository comment only (CertificateRequest
-      / mutual-TLS client caching path obsolete after client-only
-      normative scope in -02; no further draft change).
-
-7.2.  draft-sheffer-tls-pqc-continuity-03
-
-   *  Certificate chain: mixed (PQC EE with non-PQC issuer chain) MUST
-      be rejected; certificate_unknown (GitHub #6).
-
-   *  Security Considerations: first-connection trust, cache churn / DoS
-      (GitHub #18).
-
-   *  Operational: CDNs; TLS-terminating intermediaries (commitment
-      injection, optional client behavior) (GitHub #7).
-
-7.3.  draft-sheffer-tls-pqc-continuity-02
+7.1.  draft-sheffer-tls-pqc-continuity-02
 
    Implemented comments received on the mailing list and learnings from
    an implementation.
 
    *  Normative scope: TLS clients caching server commitments only;
       cache indexing (RFC 9525).  Informative note on out-of-scope
-      symmetric use case.
+      symmetric use case.  GitHub #4 closed with repository comment only
+      (CertificateRequest / mutual-TLS client caching path obsolete; no
+      further draft change).
 
    *  Certificate extension: algorithm_validity_period only (GitHub #9).
 
@@ -518,7 +499,18 @@ Table of Contents
    *  Define PQC EE cert: pure PQ and composite PQ one class (GitHub
       #17).
 
-7.4.  draft-sheffer-tls-pqc-continuity-01
+   *  Certificate chain: mixed (PQC EE with non-PQC issuer chain) MUST
+      be rejected; certificate_unknown (GitHub #6).
+
+   *  Security Considerations: first-connection trust, cache churn / DoS
+      (GitHub #18).
+
+   *  Operational: CDNs; TLS-terminating intermediaries (commitment
+      injection, optional client behavior) (GitHub #7).
+
+   *  Acknowledgments (GitHub #19).
+
+7.2.  draft-sheffer-tls-pqc-continuity-01
 
    *  Language consistency improvements (terminology, field names,
       formatting).
@@ -526,7 +518,7 @@ Table of Contents
    *  Technical consistency improvements (bidirectional scope, cache
       semantics, validation requirements).
 
-7.5.  draft-sheffer-tls-pqc-continuity-00
+7.3.  draft-sheffer-tls-pqc-continuity-00
 
    Initial version.
 

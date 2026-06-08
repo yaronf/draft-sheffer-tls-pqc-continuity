@@ -43,7 +43,7 @@ informative:
 --- abstract
 
 As the Internet transitions toward post-quantum cryptography (PQC), many TLS servers will continue supporting
-traditional certificates to maintain compatibility with legacy clients. However, this coexistence introduces a significant vulnerability: an undetected rollback attack, where a malicious actor strips the PQC or Composite certificate and forces the use of a traditional certificate once quantum-capable adversaries exist.
+traditional certificates to maintain compatibility with legacy clients. However, this coexistence introduces a significant vulnerability: an undetected rollback attack, where a malicious actor strips the PQC or composite certificate and forces the use of a classical certificate once quantum-capable adversaries exist.
 
 To defend against this, this document defines a TLS extension that allows a TLS client to cache a server's declared commitment to present PQC or composite certificates for a specified duration. On subsequent connections, the client enforces that cached commitment and rejects traditional-only certificates that conflict with it. This mechanism, inspired by HTTP Strict Transport Security (HSTS) but operating at the TLS layer, provides PQC downgrade protection without requiring changes to certificate authority (CA) infrastructure.
 
@@ -78,7 +78,7 @@ TLS client to cache an indication that the server is able to
 present a (composite or pure) PQC certificate, for some duration of time, e.g. one year. As a result:
 
 * Clients reconnecting to an already known server within the validity period are protected
-from rollback to classic certificates.
+from rollback to classical certificates.
 * A client begins enforcing the server's PQC commitment only after it has
   successfully connected to the legitimate server at least once (i.e., a connection
   not intercepted by a MitM). Earlier connections that are
@@ -177,7 +177,7 @@ non-empty extension:
 2. If the client holds unexpired cached information for the server, and receives the extension from the server:
 
    * If the `algorithm_validity_period` is zero, the client MUST clear the cached information for this server.
-   * Otherwise, the client SHOULD validate that the end-entity certificate remains PQC, that every `CertificateEntry` satisfies {{pqc-ee}}, and SHOULD extend its cache period if the
+   * Otherwise, the client MUST apply {{certificate-chain}} and SHOULD extend its cache period if the
      received time value would expire later than its current cache expiry.
    * It SHOULD silently ignore an `algorithm_validity_period` value if it would decrease
      its existing cached expiry.
@@ -260,12 +260,12 @@ Implemented comments received on the mailing list and learnings from an implemen
 * Normative scope: TLS clients caching server commitments only; cache indexing (RFC 9525). Informative note on out-of-scope symmetric use case. GitHub #4 closed with repository comment only (CertificateRequest / mutual-TLS client caching path obsolete; no further draft change).
 * Certificate extension: `algorithm_validity_period` only (GitHub #9).
 * Malformed extension length: `decode_error` (GitHub #11).
-* EE-only Certificate extension placement; commitment inconsistent with non-PQC EE: `illegal_parameter` (GitHub #12).
+* EE-only Certificate extension placement: `illegal_parameter` if misplaced (GitHub #12).
 * Cache key: RFC 9525 identity, port, TLS vs DTLS (GitHub #13).
 * Remove "few seconds" tolerance when decreasing cached validity (GitHub #15).
 * `algorithm_validity_period` zero: withdrawal semantics; stale-cache operations (GitHub #16).
 * Define PQC EE cert: pure PQ and composite PQ one class (GitHub #17).
-* Certificate chain: mixed (PQC EE with non-PQC issuer chain) MUST be rejected; `certificate_unknown` (GitHub #6).
+* Certificate chain: client MUST reject non-PQC or mixed chains when commitment applies; `certificate_unknown` (GitHub #6; supersedes #12 commitment/EE mismatch alert).
 * Security Considerations: first-connection trust, cache churn / DoS (GitHub #18).
 * Operational: CDNs; TLS-terminating intermediaries (commitment injection, optional client behavior) (GitHub #7).
 * Acknowledgments (GitHub #19).
@@ -298,5 +298,5 @@ to the Web Public Key Infrastructure would also affect adoption.
 For example, in the HSTS space, it is common to experiment first with very short durations, e.g. 1 day,
 before moving to a longer commitment. This could have a significant effect on real-life adoption.
 * The revocation checking aspect of the certificate-based solution relies upon other mechanisms
-  (e.g. CRLs, OCSP) to also be signed with PQC/Composite. Those other RFCs and
+  (e.g. CRLs, OCSP) to also be signed with PQC/composite. Those other RFCs and
 implementations are likely to take even longer to materialize.

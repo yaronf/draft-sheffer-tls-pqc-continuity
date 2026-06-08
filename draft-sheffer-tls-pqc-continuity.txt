@@ -18,8 +18,8 @@ Abstract
    many TLS servers will continue supporting traditional certificates to
    maintain compatibility with legacy clients.  However, this
    coexistence introduces a significant vulnerability: an undetected
-   rollback attack, where a malicious actor strips the PQC or Composite
-   certificate and forces the use of a traditional certificate once
+   rollback attack, where a malicious actor strips the PQC or composite
+   certificate and forces the use of a classical certificate once
    quantum-capable adversaries exist.
 
    To defend against this, this document defines a TLS extension that
@@ -140,7 +140,7 @@ Table of Contents
    some duration of time, e.g. one year.  As a result:
 
    *  Clients reconnecting to an already known server within the
-      validity period are protected from rollback to classic
+      validity period are protected from rollback to classical
       certificates.
 
    *  A client begins enforcing the server's PQC commitment only after
@@ -311,11 +311,9 @@ Table of Contents
        *  If the algorithm_validity_period is zero, the client MUST
           clear the cached information for this server.
 
-       *  Otherwise, the client SHOULD validate that the end-entity
-          certificate remains PQC, that every CertificateEntry satisfies
-          Section 3.1, and SHOULD extend its cache period if the
-          received time value would expire later than its current cache
-          expiry.
+       *  Otherwise, the client MUST apply Section 3.2 and SHOULD extend
+          its cache period if the received time value would expire later
+          than its current cache expiry.
 
        *  It SHOULD silently ignore an algorithm_validity_period value
           if it would decrease its existing cached expiry.
@@ -485,8 +483,8 @@ Table of Contents
 
    *  Malformed extension length: decode_error (GitHub #11).
 
-   *  EE-only Certificate extension placement; commitment inconsistent
-      with non-PQC EE: illegal_parameter (GitHub #12).
+   *  EE-only Certificate extension placement: illegal_parameter if
+      misplaced (GitHub #12).
 
    *  Cache key: RFC 9525 identity, port, TLS vs DTLS (GitHub #13).
 
@@ -499,8 +497,9 @@ Table of Contents
    *  Define PQC EE cert: pure PQ and composite PQ one class (GitHub
       #17).
 
-   *  Certificate chain: mixed (PQC EE with non-PQC issuer chain) MUST
-      be rejected; certificate_unknown (GitHub #6).
+   *  Certificate chain: client MUST reject non-PQC or mixed chains when
+      commitment applies; certificate_unknown (GitHub #6; supersedes #12
+      commitment/EE mismatch alert).
 
    *  Security Considerations: first-connection trust, cache churn / DoS
       (GitHub #18).
@@ -619,7 +618,7 @@ Appendix A.  Comparison with the Certificate-Based Solution
 
    *  The revocation checking aspect of the certificate-based solution
       relies upon other mechanisms (e.g. CRLs, OCSP) to also be signed
-      with PQC/Composite.  Those other RFCs and implementations are
+      with PQC/composite.  Those other RFCs and implementations are
       likely to take even longer to materialize.
 
 Authors' Addresses

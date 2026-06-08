@@ -9,7 +9,7 @@
 <meta content="Tirumaleswar Reddy" name="author">
 <meta content="
        As the Internet transitions toward post-quantum cryptography (PQC), many TLS servers will continue supporting
-traditional certificates to maintain compatibility with legacy clients. However, this coexistence introduces a significant vulnerability: an undetected rollback attack, where a malicious actor strips the PQC or Composite certificate and forces the use of a traditional certificate once quantum-capable adversaries exist. 
+traditional certificates to maintain compatibility with legacy clients. However, this coexistence introduces a significant vulnerability: an undetected rollback attack, where a malicious actor strips the PQC or composite certificate and forces the use of a classical certificate once quantum-capable adversaries exist. 
        To defend against this, this document defines a TLS extension that allows a TLS client to cache a server's declared commitment to present PQC or composite certificates for a specified duration. On subsequent connections, the client enforces that cached commitment and rejects traditional-only certificates that conflict with it. This mechanism, inspired by HTTP Strict Transport Security (HSTS) but operating at the TLS layer, provides PQC downgrade protection without requiring changes to certificate authority (CA) infrastructure. 
     " name="description">
 <meta content="xml2rfc 3.33.0" name="generator">
@@ -1088,7 +1088,7 @@ svg {
 <section id="section-abstract">
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
 <p id="section-abstract-1">As the Internet transitions toward post-quantum cryptography (PQC), many TLS servers will continue supporting
-traditional certificates to maintain compatibility with legacy clients. However, this coexistence introduces a significant vulnerability: an undetected rollback attack, where a malicious actor strips the PQC or Composite certificate and forces the use of a traditional certificate once quantum-capable adversaries exist.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+traditional certificates to maintain compatibility with legacy clients. However, this coexistence introduces a significant vulnerability: an undetected rollback attack, where a malicious actor strips the PQC or composite certificate and forces the use of a classical certificate once quantum-capable adversaries exist.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
 <p id="section-abstract-2">To defend against this, this document defines a TLS extension that allows a TLS client to cache a server's declared commitment to present PQC or composite certificates for a specified duration. On subsequent connections, the client enforces that cached commitment and rejects traditional-only certificates that conflict with it. This mechanism, inspired by HTTP Strict Transport Security (HSTS) but operating at the TLS layer, provides PQC downgrade protection without requiring changes to certificate authority (CA) infrastructure.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
 </section>
 <section class="note rfcEditorRemove" id="section-note.1">
@@ -1278,7 +1278,7 @@ present a (composite or pure) PQC certificate, for some duration of time, e.g. o
 <ul class="normal">
 <li class="normal" id="section-1-5.1">
           <p id="section-1-5.1.1">Clients reconnecting to an already known server within the validity period are protected
-from rollback to classic certificates.<a href="#section-1-5.1.1" class="pilcrow">¶</a></p>
+from rollback to classical certificates.<a href="#section-1-5.1.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-1-5.2">
           <p id="section-1-5.2.1">A client begins enforcing the server's PQC commitment only after it has
@@ -1420,7 +1420,7 @@ non-empty extension:<a href="#section-3.6-2.1.1" class="pilcrow">¶</a></p>
                 <p id="section-3.6-2.2.2.1.1">If the <code>algorithm_validity_period</code> is zero, the client <span class="bcp14">MUST</span> clear the cached information for this server.<a href="#section-3.6-2.2.2.1.1" class="pilcrow">¶</a></p>
 </li>
               <li class="normal" id="section-3.6-2.2.2.2">
-                <p id="section-3.6-2.2.2.2.1">Otherwise, the client <span class="bcp14">SHOULD</span> validate that the end-entity certificate remains PQC, that every <code>CertificateEntry</code> satisfies <a href="#pqc-ee" class="auto internal xref">Section 3.1</a>, and <span class="bcp14">SHOULD</span> extend its cache period if the
+                <p id="section-3.6-2.2.2.2.1">Otherwise, the client <span class="bcp14">MUST</span> apply <a href="#certificate-chain" class="auto internal xref">Section 3.2</a> and <span class="bcp14">SHOULD</span> extend its cache period if the
 received time value would expire later than its current cache expiry.<a href="#section-3.6-2.2.2.2.1" class="pilcrow">¶</a></p>
 </li>
               <li class="normal" id="section-3.6-2.2.2.3">
@@ -1577,7 +1577,7 @@ duration. In the case of HSTS, lifetimes are commonly set to one year.<a href="#
             <p id="section-7.1-2.3.1">Malformed extension length: <code>decode_error</code> (GitHub #11).<a href="#section-7.1-2.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-7.1-2.4">
-            <p id="section-7.1-2.4.1">EE-only Certificate extension placement; commitment inconsistent with non-PQC EE: <code>illegal_parameter</code> (GitHub #12).<a href="#section-7.1-2.4.1" class="pilcrow">¶</a></p>
+            <p id="section-7.1-2.4.1">EE-only Certificate extension placement: <code>illegal_parameter</code> if misplaced (GitHub #12).<a href="#section-7.1-2.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-7.1-2.5">
             <p id="section-7.1-2.5.1">Cache key: RFC 9525 identity, port, TLS vs DTLS (GitHub #13).<a href="#section-7.1-2.5.1" class="pilcrow">¶</a></p>
@@ -1592,7 +1592,7 @@ duration. In the case of HSTS, lifetimes are commonly set to one year.<a href="#
             <p id="section-7.1-2.8.1">Define PQC EE cert: pure PQ and composite PQ one class (GitHub #17).<a href="#section-7.1-2.8.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-7.1-2.9">
-            <p id="section-7.1-2.9.1">Certificate chain: mixed (PQC EE with non-PQC issuer chain) <span class="bcp14">MUST</span> be rejected; <code>certificate_unknown</code> (GitHub #6).<a href="#section-7.1-2.9.1" class="pilcrow">¶</a></p>
+            <p id="section-7.1-2.9.1">Certificate chain: client <span class="bcp14">MUST</span> reject non-PQC or mixed chains when commitment applies; <code>certificate_unknown</code> (GitHub #6; supersedes #12 commitment/EE mismatch alert).<a href="#section-7.1-2.9.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-7.1-2.10">
             <p id="section-7.1-2.10.1">Security Considerations: first-connection trust, cache churn / DoS (GitHub #18).<a href="#section-7.1-2.10.1" class="pilcrow">¶</a></p>
@@ -1730,7 +1730,7 @@ before moving to a longer commitment. This could have a significant effect on re
 </li>
         <li class="normal" id="appendix-A-2.4">
           <p id="appendix-A-2.4.1">The revocation checking aspect of the certificate-based solution relies upon other mechanisms
-(e.g. CRLs, OCSP) to also be signed with PQC/Composite. Those other RFCs and
+(e.g. CRLs, OCSP) to also be signed with PQC/composite. Those other RFCs and
 implementations are likely to take even longer to materialize.<a href="#appendix-A-2.4.1" class="pilcrow">¶</a></p>
 </li>
       </ul>

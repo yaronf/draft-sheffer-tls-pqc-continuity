@@ -5,8 +5,8 @@
 Transport Layer Security                                      Y. Sheffer
 Internet-Draft                                                    Intuit
 Intended status: Standards Track                                T. Reddy
-Expires: 1 November 2026                                           Nokia
-                                                           30 April 2026
+Expires: 10 December 2026                                          Nokia
+                                                             8 June 2026
 
 
  PQC Continuity: Downgrade Protection for TLS Servers Migrating to PQC
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 1 November 2026.
+   This Internet-Draft will expire on 10 December 2026.
 
 Copyright Notice
 
@@ -81,18 +81,26 @@ Table of Contents
    2.  Conventions and Definitions
    3.  The pq_cert_available Extension
      3.1.  PQC end-entity certificate
-     3.2.  Extension Definition
-     3.3.  Cache indexing
-     3.4.  Algorithm Selection
-     3.5.  Client behavior
-     3.6.  Server behavior
-     3.7.  Operational Considerations
-   4.  Security Considerations
-   5.  IANA Considerations
-   6.  Document History
-     6.1.  draft-sheffer-tls-pqc-continuity-02
-     6.2.  draft-sheffer-tls-pqc-continuity-01
-     6.3.  draft-sheffer-tls-pqc-continuity-00
+     3.2.  Certificate chain
+     3.3.  Extension Definition
+     3.4.  Cache indexing
+     3.5.  Algorithm Selection
+     3.6.  Client behavior
+     3.7.  Server behavior
+   4.  Operational Considerations
+     4.1.  CDNs and changing certificate chains
+     4.2.  TLS-terminating intermediaries
+   5.  Security Considerations
+     5.1.  First connection and cached state
+     5.2.  Cache churn and denial of service
+     5.3.  Related threats
+   6.  IANA Considerations
+   7.  Document History
+     7.1.  draft-sheffer-tls-pqc-continuity-04
+     7.2.  draft-sheffer-tls-pqc-continuity-03
+     7.3.  draft-sheffer-tls-pqc-continuity-02
+     7.4.  draft-sheffer-tls-pqc-continuity-01
+     7.5.  draft-sheffer-tls-pqc-continuity-00
    Acknowledgments
    References
      Normative References
@@ -124,6 +132,10 @@ Table of Contents
    attacks.  Relying parties therefore need mechanisms to detect when
    servers claiming PQC support revert to traditional credentials only.
 
+   [RescorlaPQEmergency] is an informal, accessible description of the
+   threat of CRQC emergence and the difficulties of mounting a
+   coordinated response.
+
    To prevent such downgrade attacks, this document defines a TLS
    extension that enables a TLS client to cache an indication that the
    server is able to present a (composite or pure) PQC certificate, for
@@ -149,10 +161,10 @@ Table of Contents
    the HTTP layer, this extension is implemented at the TLS layer.
 
    Normative requirements in this document apply to TLS clients caching
-   server commitments only.  Informative: a symmetric design (TLS
-   servers caching client certificate commitments in mutual TLS) is not
-   specified here since it would add significant complexity and we
-   believe this complexity is not justified in most use cases.
+   server commitments only.  A symmetric design (TLS servers caching
+   client certificate commitments in mutual TLS) is not specified here
+   since it would add significant complexity and we believe this
+   complexity is not justified in most use cases.
 
    An alternative approach to downgrade attacks, described in
    [I-D.reddy-lamps-x509-pq-commit], uses specially marked certificates
@@ -185,7 +197,26 @@ Table of Contents
    client policy; this text is informative context, not a closed list of
    algorithms.
 
-3.2.  Extension Definition
+3.2.  Certificate chain
+
+   Post-quantum authentication requires signatures along the entire path
+   to be resistant to quantum-capable adversaries; a PQC end-entity
+   certificate paired with a classically signed intermediate does not
+   provide this property.  For a fully PQ-signed path through the PKI,
+   trust anchors would also need to be PQ-capable where they participate
+   in validation; this document does not specify trust-store policy.
+
+   When the client requires a PQC end-entity certificate for that
+   handshake (including because the server sends non-empty
+   pq_cert_available extension data on the first CertificateEntry, or
+   because the client holds unexpired cached information for this server
+   per Client behavior), the client MUST apply its PQC policy to every
+   CertificateEntry in the server's Certificate message using the same
+   criterion as in Section 3.1.  If any CertificateEntry does not
+   satisfy this requirement, the client MUST abort the handshake with a
+   certificate_unknown alert.
+
+3.3.  Extension Definition
 
    This is a TLS extension, as per sec. 4.2 of [RFC8446].  The extension
    type for pq_cert_available is TBD by IANA.  It MAY appear in the
@@ -230,19 +261,14 @@ Table of Contents
    pq_cert_available on any other CertificateEntry MUST abort the
    handshake with an illegal_parameter alert.
 
-   If the first CertificateEntry includes non-empty pq_cert_available
-   extension data but the end-entity certificate is not PQC under the
-   client's policy, the client MUST abort the handshake with an
-   illegal_parameter alert.
-
-3.3.  Cache indexing
+3.4.  Cache indexing
 
    The client MUST key each cache entry by the authenticated TLS server
    identity from [RFC9525], the port, and whether the handshake is
    connection-oriented (TLS) or datagram (DTLS).  Entries that differ in
    any of these MUST NOT be merged.
 
-3.4.  Algorithm Selection
+3.5.  Algorithm Selection
 
    If the client holds unexpired cached information for the server:
 
@@ -261,7 +287,7 @@ Table of Contents
    As a result, the handshake would fail if a rollback attack is
    attempted.
 
-3.5.  Client behavior
+3.6.  Client behavior
 
    A client that supports this extension MUST behave as follows:
 
@@ -288,9 +314,10 @@ Table of Contents
           clear the cached information for this server.
 
        *  Otherwise, the client SHOULD validate that the end-entity
-          certificate remains PQC and SHOULD extend its cache period if
-          the received time value would expire later than its current
-          cache expiry.
+          certificate remains PQC, that every CertificateEntry satisfies
+          Section 3.1, and SHOULD extend its cache period if the
+          received time value would expire later than its current cache
+          expiry.
 
        *  It SHOULD silently ignore an algorithm_validity_period value
           if it would decrease its existing cached expiry.
@@ -299,7 +326,7 @@ Table of Contents
        and receives no extension from the server in the Certificate
        message, the client SHOULD NOT modify its cache.
 
-3.6.  Server behavior
+3.7.  Server behavior
 
    1.  A server that receives client support for this extension SHOULD
        send this extension in the extensions field of the first
@@ -321,7 +348,12 @@ Table of Contents
    send exactly the four-octet algorithm_validity_period on the first
    CertificateEntry only (not an empty extension).
 
-3.7.  Operational Considerations
+   When the server sends non-empty pq_cert_available extension data on
+   the first CertificateEntry, every CertificateEntry in the server's
+   Certificate message MUST be PQC under the same definition as in
+   Section 3.1.
+
+4.  Operational Considerations
 
    This extension establishes a (potentially) long-term commitment of
    the server to support PQC signature algorithms.  As such, we
@@ -337,11 +369,92 @@ Table of Contents
    Operators should assume overlap up to the longest validity they
    previously published while clients may still have been caching.
 
-4.  Security Considerations
+4.1.  CDNs and changing certificate chains
 
-   TODO Security
+   The same logical server (same DNS name and application identity) may
+   present different certificate chains over time, for example when
+   using a CDN with different points of presence, or multiple CAs.
+   Cache entries are keyed by authenticated server identity
+   (Section 3.4), not by a particular chain.  Operators SHOULD ensure
+   that every chain presented while a non-empty commitment is in effect
+   satisfies Section 3.2 when PQC is required.
 
-5.  IANA Considerations
+4.2.  TLS-terminating intermediaries
+
+   Enterprise inspection proxies are common in practice: they terminate
+   TLS toward the client and present a certificate issued under a
+   locally trusted CA rather than the origin's Web PKI chain.  The same
+   normative constraint applies to any on-path endpoint that is not
+   operated by the origin but presents a server Certificate message to
+   the client.
+
+   An endpoint that terminates TLS toward the client and is not operated
+   by the origin MUST NOT send non-empty pq_cert_available extension
+   data unless it presents a PQC end-entity certificate chain toward the
+   client that satisfies Section 3.2 and can honor the commitment for
+   algorithm_validity_period on that client-facing connection.
+   Otherwise it MUST NOT inject a non-empty commitment on behalf of the
+   origin.
+
+   Many TLS clients only ever connect over paths validated with public
+   Web PKI; for them, the rules elsewhere in this document apply without
+   additional policy.  Clients that are configured to trust an
+   enterprise or security appliance for inspection typically see most or
+   all origins through that appliance unless the deployment makes an
+   explicit exception; the user or organization has already accepted
+   that the appliance terminates TLS and can present its own
+   certificates.  Implementations in such environments MAY choose how to
+   cache or enforce pq_cert_available when validation uses only
+   inspection roots---for example by not applying a commitment recorded
+   on an inspection path when the same name is later reached on a direct
+   Web PKI path, or by accepting traditional chains when the path chains
+   only to inspection CAs.  This document does not mandate those
+   details.  HTTP Public Key Pinning [RFC7469] (Historic) described an
+   analogous exception in Section 2.6: user agents could disable pin
+   validation when the validated chain terminated at a user-defined
+   trust anchor rather than a built-in anchor.
+
+5.  Security Considerations
+
+5.1.  First connection and cached state
+
+   Protection against downgrade applies only after the client has
+   completed a handshake to the legitimate server and recorded a
+   commitment (see Section 1).  Until then, behavior matches the usual
+   trust-on-first-use limitation of channel-based pinning, analogous to
+   HTTP Strict Transport Security (HSTS) [RFC6797]: an active adversary
+   who controls an earlier connection can prevent useful cache
+   population or cause the client to store parameters chosen by the
+   adversary.  Cached entries are only as reliable as the authenticated
+   channel that produced them.
+
+   Operationally, the damage is limited.  If cache population is
+   suppressed, the client would realize that the server is PQC-capable
+   as soon as it connects directly to the server.
+
+5.2.  Cache churn and denial of service
+
+   A malicious or compromised server can send a different
+   algorithm_validity_period (or alternate between zero and non-zero
+   values) on every successful handshake, causing the client to update
+   persistent cache state repeatedly.  That can amplify storage I/O and
+   resource use and become a denial-of-service vector against the
+   client.  Implementations SHOULD rate-limit or coalesce cache updates
+   per server key (see Section 3.4), and SHOULD avoid writing to durable
+   storage when the update is minor compared to what is already stored:
+   for example when the received algorithm_validity_period differs by at
+   most one day (86400 seconds) from the value already associated with
+   this cache entry, such as from small jitter or rounding.
+
+5.3.  Related threats
+
+   This mechanism does not replace PKIX validation, name verification,
+   or trust anchor policy; it adds downgrade protection once a
+   legitimate commitment has been observed.  Traditional certificate
+   chains remain out of scope except where this document already
+   requires rejection (see Section 3.2).
+
+6.  IANA Considerations
 
    IANA is requested to assign a new value from the “TLS ExtensionType
    Values” registry.
@@ -355,11 +468,30 @@ Table of Contents
 
                                   Table 1
 
-6.  Document History
+7.  Document History
 
    RFC Editor: please remove before publication.
 
-6.1.  draft-sheffer-tls-pqc-continuity-02
+7.1.  draft-sheffer-tls-pqc-continuity-04
+
+   *  Acknowledgments (GitHub #19).
+
+   *  GitHub #4 closed with repository comment only (CertificateRequest
+      / mutual-TLS client caching path obsolete after client-only
+      normative scope in -02; no further draft change).
+
+7.2.  draft-sheffer-tls-pqc-continuity-03
+
+   *  Certificate chain: mixed (PQC EE with non-PQC issuer chain) MUST
+      be rejected; certificate_unknown (GitHub #6).
+
+   *  Security Considerations: first-connection trust, cache churn / DoS
+      (GitHub #18).
+
+   *  Operational: CDNs; TLS-terminating intermediaries (commitment
+      injection, optional client behavior) (GitHub #7).
+
+7.3.  draft-sheffer-tls-pqc-continuity-02
 
    Implemented comments received on the mailing list and learnings from
    an implementation.
@@ -386,7 +518,7 @@ Table of Contents
    *  Define PQC EE cert: pure PQ and composite PQ one class (GitHub
       #17).
 
-6.2.  draft-sheffer-tls-pqc-continuity-01
+7.4.  draft-sheffer-tls-pqc-continuity-01
 
    *  Language consistency improvements (terminology, field names,
       formatting).
@@ -394,13 +526,14 @@ Table of Contents
    *  Technical consistency improvements (bidirectional scope, cache
       semantics, validation requirements).
 
-6.3.  draft-sheffer-tls-pqc-continuity-00
+7.5.  draft-sheffer-tls-pqc-continuity-00
 
    Initial version.
 
 Acknowledgments
 
-   TODO acknowledge.
+   Thanks to Eric Rescorla, Yaroslav Rosomakho, Muhammad Usama Sardar,
+   and Scott Fluhrer for helpful discussion on the TLS mailing list.
 
 References
 
@@ -459,10 +592,18 @@ Informative References
               <https://datatracker.ietf.org/doc/html/draft-reddy-lamps-
               x509-pq-commit-01>.
 
+   [RescorlaPQEmergency]
+              Rescorla, E., "PQ emergency (Educated Guesswork)", n.d.,
+              <https://educatedguesswork.org/posts/pq-emergency/>.
+
    [RFC6797]  Hodges, J., Jackson, C., and A. Barth, "HTTP Strict
               Transport Security (HSTS)", RFC 6797,
               DOI 10.17487/RFC6797, November 2012,
               <https://www.rfc-editor.org/rfc/rfc6797>.
+
+   [RFC7469]  Evans, C., Palmer, C., and R. Sleevi, "Public Key Pinning
+              Extension for HTTP", RFC 7469, DOI 10.17487/RFC7469, April
+              2015, <https://www.rfc-editor.org/rfc/rfc7469>.
 
 Appendix A.  Comparison with the Certificate-Based Solution
 

@@ -253,22 +253,11 @@ IANA is requested to assign a new value from the “TLS ExtensionType Values” 
 
 RFC Editor: please remove before publication.
 
-## draft-sheffer-tls-pqc-continuity-04
-
-* Acknowledgments (GitHub #19).
-* GitHub #4 closed with repository comment only (CertificateRequest / mutual-TLS client caching path obsolete after client-only normative scope in -02; no further draft change).
-
-## draft-sheffer-tls-pqc-continuity-03
-
-* Certificate chain: mixed (PQC EE with non-PQC issuer chain) MUST be rejected; `certificate_unknown` (GitHub #6).
-* Security Considerations: first-connection trust, cache churn / DoS (GitHub #18).
-* Operational: CDNs; TLS-terminating intermediaries (commitment injection, optional client behavior) (GitHub #7).
-
 ## draft-sheffer-tls-pqc-continuity-02
 
 Implemented comments received on the mailing list and learnings from an implementation.
 
-* Normative scope: TLS clients caching server commitments only; cache indexing (RFC 9525). Informative note on out-of-scope symmetric use case.
+* Normative scope: TLS clients caching server commitments only; cache indexing (RFC 9525). Informative note on out-of-scope symmetric use case. GitHub #4 closed with repository comment only (CertificateRequest / mutual-TLS client caching path obsolete; no further draft change).
 * Certificate extension: `algorithm_validity_period` only (GitHub #9).
 * Malformed extension length: `decode_error` (GitHub #11).
 * EE-only Certificate extension placement; commitment inconsistent with non-PQC EE: `illegal_parameter` (GitHub #12).
@@ -276,6 +265,10 @@ Implemented comments received on the mailing list and learnings from an implemen
 * Remove "few seconds" tolerance when decreasing cached validity (GitHub #15).
 * `algorithm_validity_period` zero: withdrawal semantics; stale-cache operations (GitHub #16).
 * Define PQC EE cert: pure PQ and composite PQ one class (GitHub #17).
+* Certificate chain: mixed (PQC EE with non-PQC issuer chain) MUST be rejected; `certificate_unknown` (GitHub #6).
+* Security Considerations: first-connection trust, cache churn / DoS (GitHub #18).
+* Operational: CDNs; TLS-terminating intermediaries (commitment injection, optional client behavior) (GitHub #7).
+* Acknowledgments (GitHub #19).
 
 ## draft-sheffer-tls-pqc-continuity-01
 

@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-06-09T03:51:52.455242+00:00",
+  "timestamp": "2026-06-11T04:16:45.410123+00:00",
   "repo": "yaronf/draft-sheffer-tls-pqc-continuity",
   "labels": [
     {
@@ -360,6 +360,22 @@
       "createdAt": "2026-04-30T21:58:54Z",
       "updatedAt": "2026-06-08T15:17:42Z",
       "closedAt": "2026-06-08T15:17:42Z",
+      "comments": []
+    },
+    {
+      "number": 23,
+      "id": "I_kwDOP3oGhM8AAAABE6u01g",
+      "title": "Clarify the interaction with PLANTS (Merkle tree certs)",
+      "url": "https://github.com/yaronf/draft-sheffer-tls-pqc-continuity/issues/23",
+      "state": "OPEN",
+      "author": "yaronf",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "Thread by Ilari Liusvaara at https://mailarchive.ietf.org/arch/msg/tls/kjA1x3EzJote0yEJMB8PRVB5rIc/\n\n",
+      "createdAt": "2026-06-09T19:32:42Z",
+      "updatedAt": "2026-06-09T19:32:42Z",
+      "closedAt": null,
       "comments": []
     }
   ],

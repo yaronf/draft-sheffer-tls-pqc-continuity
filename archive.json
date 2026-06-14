@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-06-11T04:16:45.410123+00:00",
+  "timestamp": "2026-06-14T04:24:31.976898+00:00",
   "repo": "yaronf/draft-sheffer-tls-pqc-continuity",
   "labels": [
     {
@@ -375,6 +375,22 @@
       "body": "Thread by Ilari Liusvaara at https://mailarchive.ietf.org/arch/msg/tls/kjA1x3EzJote0yEJMB8PRVB5rIc/\n\n",
       "createdAt": "2026-06-09T19:32:42Z",
       "updatedAt": "2026-06-09T19:32:42Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 24,
+      "id": "I_kwDOP3oGhM8AAAABFI4wig",
+      "title": "IANA: missing field",
+      "url": "https://github.com/yaronf/draft-sheffer-tls-pqc-continuity/issues/24",
+      "state": "OPEN",
+      "author": "yaronf",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "IANA early review:\n\n\nDear Authors,\n\nBefore the IETF meeting, we check working group agendas for documents with IANA-related issues. We have a note about this document:\n\nhttps://datatracker.ietf.org/doc/html/draft-sheffer-tls-pqc-continuity-01\n\nPlease add the registry\u2019s \u201cDTLS-Only\u201d field. See \n\nhttps://www.iana.org/assignments/tls-extensiontype-values\n\nIf you have any questions, just let us know. If you'd like to talk in person, you can find us next to the RFC Editor's table from Monday through Thursday. You can also request another review at any time by contacting us at [iana@iana.org](mailto:iana@iana.org).\n\nFor more information about IANA Considerations section requirements, please see\n\nhttps://www.iana.org/help/protocol-registration\n\nBest regards,\n\nAmanda Baber\nIANA",
+      "createdAt": "2026-06-11T11:08:43Z",
+      "updatedAt": "2026-06-11T11:08:43Z",
       "closedAt": null,
       "comments": []
     }

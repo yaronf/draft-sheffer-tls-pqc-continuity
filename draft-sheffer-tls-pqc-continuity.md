@@ -244,14 +244,18 @@ This mechanism does not replace PKIX validation, name verification, or trust anc
 
 IANA is requested to assign a new value from the “TLS ExtensionType Values” registry.
 
-| Value | Extension Name    |  TLS 1.3  | Recommended | Reference     |
-| ----: | ----------------- |  :-----:  | :---------: | :------------ |
-|   TBD | pq_cert_available | CH, CT |      Y      | This document |
+| Value | Extension Name    |  TLS 1.3  | DTLS-Only | Recommended | Reference     |
+| ----: | ----------------- |  :-----:  | :---------: | :---------: | :------------ |
+|   TBD | pq_cert_available | CH, CT |      N      |      Y      | This document |
 
 
 # Document History
 
 RFC Editor: please remove before publication.
+
+## draft-sheffer-tls-pqc-continuity-03
+
+* IANA Considerations: add `DTLS-Only` column to TLS ExtensionType Values registration (GitHub #24).
 
 ## draft-sheffer-tls-pqc-continuity-02
 

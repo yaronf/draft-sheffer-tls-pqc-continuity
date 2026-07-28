@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-06-14T04:24:31.976898+00:00",
+  "timestamp": "2026-07-28T02:45:04.935028+00:00",
   "repo": "yaronf/draft-sheffer-tls-pqc-continuity",
   "labels": [
     {
@@ -938,6 +938,32 @@
           ]
         }
       ]
+    },
+    {
+      "number": 25,
+      "id": "PR_kwDOP3oGhM728Plo",
+      "title": "IANA: add DTLS-Only column (#24)",
+      "url": "https://github.com/yaronf/draft-sheffer-tls-pqc-continuity/pull/25",
+      "state": "OPEN",
+      "author": "yaronf",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "## Summary\n- Add the `DTLS-Only` column to the TLS ExtensionType Values registration table, per IANA early review (closes #24).\n- Set `DTLS-Only` to **N** because `pq_cert_available` applies to both TLS and DTLS (see cache indexing).\n- Document the change under `-03` in Document History.\n\n## Test plan\n- [x] `make` (kramdown-rfc, xml2rfc-txt, xml2rfc-html) passes\n- [ ] Review IANA table against https://www.iana.org/assignments/tls-extensiontype-values\n\n\nMade with [Cursor](https://cursor.com)",
+      "createdAt": "2026-07-27T13:51:48Z",
+      "updatedAt": "2026-07-27T13:51:48Z",
+      "baseRepository": "yaronf/draft-sheffer-tls-pqc-continuity",
+      "baseRefName": "main",
+      "baseRefOid": "74be2f237659b8f96df8caf5226277bb76e25b90",
+      "headRepository": "yaronf/draft-sheffer-tls-pqc-continuity",
+      "headRefName": "ys-24",
+      "headRefOid": "6aea23ea2ac095b94ee19a546755a25cc4ac645a",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
     }
   ]
 }

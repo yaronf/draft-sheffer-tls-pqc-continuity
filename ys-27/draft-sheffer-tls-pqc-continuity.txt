@@ -288,7 +288,10 @@ Table of Contents
 
 3.6.  Client behavior
 
-   A client that supports this extension MUST behave as follows:
+   A client that supports this extension MUST behave as follows.
+   Updates to persistent cache state (including the commitment and
+   information used for Section 3.5) MUST be deferred until after the
+   handshake completes successfully.
 
    1.  If the client holds no cached information for the server, and the
        server includes a non-empty extension:
@@ -296,12 +299,8 @@ Table of Contents
        *  If the algorithm_validity_period is zero, the client MUST NOT
           cache the information.
 
-       *  Otherwise, the client SHOULD cache the commitment after the
-          handshake completes successfully.
-
-       *  The client SHOULD record the server's actual signature
-          algorithm for subsequent ClientHello signature_algorithms
-          selection.
+       *  Otherwise, the client SHOULD cache the commitment and the end-
+          entity signature scheme observed on this connection.
 
        *  The client MAY choose to cache for a shorter period than
           specified.
@@ -310,8 +309,7 @@ Table of Contents
        and receives the extension from the server:
 
        *  If the algorithm_validity_period is zero, the client MUST
-          clear the cached information for this server after the
-          handshake completes successfully.
+          clear the cached information for this server.
 
        *  Otherwise, the client MUST apply Section 3.2 and SHOULD extend
           its cache period if the received time value would expire later
@@ -472,8 +470,8 @@ Table of Contents
 
 7.1.  draft-sheffer-tls-pqc-continuity-03
 
-   *  Client behavior rule 2: clear cache after handshake completes
-      successfully (#27).
+   *  Client behavior: defer persistent cache updates until handshake
+      completes (#27).
 
 7.2.  draft-sheffer-tls-pqc-continuity-02
 

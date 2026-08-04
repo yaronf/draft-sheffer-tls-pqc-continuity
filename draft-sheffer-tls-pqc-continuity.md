@@ -70,6 +70,8 @@ attackers to exploit classical algorithms secretly. In such cases, adversaries c
 certificates, present only traditional ones, and conduct MitM attacks. Relying parties therefore need
 mechanisms to detect when servers claiming PQC support revert to traditional credentials only.
 
+The CRQC threat addressed in this document is to server authentication: an adversary who can forge or substitute classical certificate signatures during a man-in-the-middle handshake. It does not address breaking key exchange to decrypt past sessions. Deployments are assumed to negotiate post-quantum or hybrid key exchange for handshake key agreement; specification of that protection is out of scope here.
+
 {{RescorlaPQEmergency}} is an informal, accessible description of the threat
 of CRQC emergence and the difficulties of mounting a coordinated response.
 
@@ -242,7 +244,7 @@ A malicious or compromised server can send a different `algorithm_validity_perio
 
 ## Session resumption and ticket lifetime
 
-A resumed handshake inherits the authentication properties of the full handshake that minted the resumption PSK. This document does not re-evaluate certificate credentials on PSK-only resumption. Resumption ticket lifetime is bounded as specified in {{!RFC8446}}, Section 4.6.1.
+A resumed handshake inherits the authentication properties of the full handshake that minted the resumption PSK. This document does not re-evaluate certificate credentials on PSK-only resumption. Deriving a resumption PSK by breaking classical key exchange on an earlier handshake is a key-agreement threat, not a certificate rollback threat, and is out of scope (see Introduction). Resumption ticket lifetime is bounded as specified in {{!RFC8446}}, Section 4.6.1.
 
 ## Related threats
 
@@ -264,6 +266,7 @@ RFC Editor: please remove before publication.
 ## draft-sheffer-tls-pqc-continuity-03
 
 * Clarify scope on TLS 1.3 PSK resumption: enforcement applies only when a Certificate message is sent (GitHub #29).
+* Scope CRQC threat to authentication credentials; assume PQ/hybrid key exchange for handshake key agreement (GitHub #29).
 
 ## draft-sheffer-tls-pqc-continuity-02
 

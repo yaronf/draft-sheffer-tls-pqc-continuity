@@ -70,6 +70,8 @@ attackers to exploit classical algorithms secretly. In such cases, adversaries c
 certificates, present only traditional ones, and conduct MitM attacks. Relying parties therefore need
 mechanisms to detect when servers claiming PQC support revert to traditional credentials only.
 
+The CRQC threat addressed in this document is to server authentication: an adversary who can forge or substitute classical certificate signatures during a man-in-the-middle handshake. It does not address breaking key exchange to decrypt past sessions. Deployments are assumed to negotiate post-quantum or hybrid key exchange for handshake key agreement; specification of that protection is out of scope here.
+
 {{RescorlaPQEmergency}} is an informal, accessible description of the threat
 of CRQC emergence and the difficulties of mounting a coordinated response.
 
@@ -117,6 +119,10 @@ For this document, a PQC end-entity certificate is one that is not traditional-o
 Post-quantum authentication requires signatures along the entire path to be resistant to quantum-capable adversaries; a PQC end-entity certificate paired with a classically signed intermediate does not provide this property. For a fully PQ-signed path through the PKI, trust anchors would also need to be PQ-capable where they participate in validation; this document does not specify trust-store policy.
 
 When the client requires a PQC end-entity certificate for that handshake (including because the server sends non-empty `pq_cert_available` extension data on the first `CertificateEntry`, or because the client holds unexpired cached information for this server per Client behavior), the client MUST apply its PQC policy to every `CertificateEntry` in the server's `Certificate` message using the same criterion as in {{pqc-ee}}. If any `CertificateEntry` does not satisfy this requirement, the client MUST abort the handshake with a `certificate_unknown` alert.
+
+## Session resumption {#session-resumption}
+
+TLS 1.3 session resumption using a pre-shared key (PSK) does not include a server Certificate message. Requirements in this document that operate on that message, including {{certificate-chain}}, Algorithm Selection, and Client behavior, apply only to handshakes that include it. On PSK-only resumption, peer authentication relies on the full handshake that established the resumption PSK.
 
 ## Extension Definition
 
@@ -236,6 +242,10 @@ Operationally, the damage is limited. If cache population is suppressed, the cli
 
 A malicious or compromised server can send a different `algorithm_validity_period` (or alternate between zero and non-zero values) on every successful handshake, causing the client to update persistent cache state repeatedly. That can amplify storage I/O and resource use and become a denial-of-service vector against the client. Implementations SHOULD rate-limit or coalesce cache updates per server key (see {{cache-indexing}}), and SHOULD avoid writing to durable storage when the update is minor compared to what is already stored: for example when the received `algorithm_validity_period` differs by at most one day (86400 seconds) from the value already associated with this cache entry, such as from small jitter or rounding.
 
+## Session resumption and ticket lifetime
+
+A resumed handshake inherits the authentication properties of the full handshake that minted the resumption PSK. This document does not re-evaluate certificate credentials on PSK-only resumption. Deriving a resumption PSK by breaking classical key exchange on an earlier handshake is a key-agreement threat, not a certificate rollback threat, and is out of scope (see Introduction). Resumption ticket lifetime is bounded as specified in {{!RFC8446}}, Section 4.6.1.
+
 ## Related threats
 
 This mechanism does not replace PKIX validation, name verification, or trust anchor policy; it adds downgrade protection once a legitimate commitment has been observed. Traditional certificate chains remain out of scope except where this document already requires rejection (see {{certificate-chain}}).
@@ -252,6 +262,11 @@ IANA is requested to assign a new value from the “TLS ExtensionType Values” 
 # Document History
 
 RFC Editor: please remove before publication.
+
+## draft-sheffer-tls-pqc-continuity-03
+
+* Clarify scope on TLS 1.3 PSK resumption: enforcement applies only when a Certificate message is sent (GitHub #29).
+* Scope CRQC threat to authentication credentials; assume PQ/hybrid key exchange for handshake key agreement (GitHub #29).
 
 ## draft-sheffer-tls-pqc-continuity-02
 

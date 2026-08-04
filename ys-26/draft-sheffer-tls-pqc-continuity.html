@@ -1370,8 +1370,8 @@ and is unrelated to any particular certificate or its lifecycle. A duration of z
         <h3 id="name-cache-indexing">
 <a href="#section-3.4" class="section-number selfRef">3.4. </a><a href="#name-cache-indexing" class="section-name selfRef">Cache indexing</a>
         </h3>
-<p id="section-3.4-1">The client <span class="bcp14">MUST</span> key each cache entry by the authenticated TLS server identity from <span>[<a href="#RFC9525" class="cite xref">RFC9525</a>]</span>, the transport port of the TLS connection being set up, and whether the handshake is connection-oriented (TLS) or datagram (DTLS). Entries that differ in any of these <span class="bcp14">MUST NOT</span> be merged.<a href="#section-3.4-1" class="pilcrow">¶</a></p>
-<p id="section-3.4-2">Rationale: The same DNS name can host independent TLS services on different ports. A commitment cached for one cache entry does not apply to another.<a href="#section-3.4-2" class="pilcrow">¶</a></p>
+<p id="section-3.4-1">The same DNS name can host independent TLS services on different ports, and a commitment cached for one cache entry does not apply to another.<a href="#section-3.4-1" class="pilcrow">¶</a></p>
+<p id="section-3.4-2">The client <span class="bcp14">MUST</span> key each cache entry by the authenticated TLS server identity from <span>[<a href="#RFC9525" class="cite xref">RFC9525</a>]</span>, the transport port of the TLS connection being set up, and whether the handshake is connection-oriented (TLS) or datagram (DTLS). Entries that differ in any of these <span class="bcp14">MUST NOT</span> be merged.<a href="#section-3.4-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="algorithm-selection">
@@ -1662,7 +1662,7 @@ duration. In the case of HSTS, lifetimes are commonly set to one year.<a href="#
       <h2 id="name-acknowledgments">
 <a href="#name-acknowledgments" class="section-name selfRef">Acknowledgments</a>
       </h2>
-<p id="section-8-1">Thanks to Eric Rescorla, Yaroslav Rosomakho, Muhammad Usama Sardar, and Scott Fluhrer for helpful discussion on the TLS mailing list.<a href="#section-8-1" class="pilcrow">¶</a></p>
+<p id="section-8-1">Thanks to Eric Rescorla, Yaroslav Rosomakho, Muhammad Usama Sardar, and Scott Fluhrer for helpful discussion on the TLS mailing list, and to Nazmus Salehin Sammo for detailed review comments.<a href="#section-8-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="sec-combined-references">

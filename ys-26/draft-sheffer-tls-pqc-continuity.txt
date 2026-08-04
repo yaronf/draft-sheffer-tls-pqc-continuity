@@ -267,15 +267,15 @@ Table of Contents
 
 3.4.  Cache indexing
 
+   The same DNS name can host independent TLS services on different
+   ports, and a commitment cached for one cache entry does not apply to
+   another.
+
    The client MUST key each cache entry by the authenticated TLS server
    identity from [RFC9525], the transport port of the TLS connection
    being set up, and whether the handshake is connection-oriented (TLS)
    or datagram (DTLS).  Entries that differ in any of these MUST NOT be
    merged.
-
-   Rationale: The same DNS name can host independent TLS services on
-   different ports.  A commitment cached for one cache entry does not
-   apply to another.
 
 3.5.  Algorithm Selection
 
@@ -548,7 +548,8 @@ Table of Contents
 Acknowledgments
 
    Thanks to Eric Rescorla, Yaroslav Rosomakho, Muhammad Usama Sardar,
-   and Scott Fluhrer for helpful discussion on the TLS mailing list.
+   and Scott Fluhrer for helpful discussion on the TLS mailing list, and
+   to Nazmus Salehin Sammo for detailed review comments.
 
 References
 

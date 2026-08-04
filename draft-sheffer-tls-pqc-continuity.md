@@ -176,7 +176,7 @@ non-empty extension:
 
 2. If the client holds unexpired cached information for the server, and receives the extension from the server:
 
-   * If the `algorithm_validity_period` is zero, the client MUST clear the cached information for this server.
+   * If the `algorithm_validity_period` is zero, the client MUST clear the cached information for this server after the handshake completes successfully.
    * Otherwise, the client MUST apply {{certificate-chain}} and SHOULD extend its cache period if the
      received time value would expire later than its current cache expiry.
    * It SHOULD silently ignore an `algorithm_validity_period` value if it would decrease
@@ -252,6 +252,10 @@ IANA is requested to assign a new value from the “TLS ExtensionType Values” 
 # Document History
 
 RFC Editor: please remove before publication.
+
+## draft-sheffer-tls-pqc-continuity-03
+
+* Client behavior rule 2: clear cache after handshake completes successfully (#27).
 
 ## draft-sheffer-tls-pqc-continuity-02
 

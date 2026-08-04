@@ -85,6 +85,8 @@ from rollback to classical certificates.
   intercepted or downgraded do not prevent the client from gaining protection
   once it later observes a PQC commitment from a legitimate server.
 
+Protection on reconnect applies per service endpoint (authenticated server identity, transport port, and TLS or DTLS), not to a DNS name alone.
+
 The explicitly communicated caching time allows clients and server operators to implement a caching policy with no risk of sudden
 breakage, and allows certificate holders to revert to traditional certificates if they ever see the need to do so.
 
@@ -150,7 +152,9 @@ In the server's Certificate message, `pq_cert_available` MUST appear only in the
 
 ## Cache indexing {#cache-indexing}
 
-The client MUST key each cache entry by the authenticated TLS server identity from {{!RFC9525}}, the port, and whether the handshake is connection-oriented (TLS) or datagram (DTLS). Entries that differ in any of these MUST NOT be merged.
+The client MUST key each cache entry by the authenticated TLS server identity from {{!RFC9525}}, the transport port of the TLS connection being set up, and whether the handshake is connection-oriented (TLS) or datagram (DTLS). Entries that differ in any of these MUST NOT be merged.
+
+Rationale: The same DNS name can host independent TLS services on different ports. A commitment cached for one cache entry does not apply to another.
 
 ## Algorithm Selection
 
@@ -236,6 +240,10 @@ Operationally, the damage is limited. If cache population is suppressed, the cli
 
 A malicious or compromised server can send a different `algorithm_validity_period` (or alternate between zero and non-zero values) on every successful handshake, causing the client to update persistent cache state repeatedly. That can amplify storage I/O and resource use and become a denial-of-service vector against the client. Implementations SHOULD rate-limit or coalesce cache updates per server key (see {{cache-indexing}}), and SHOULD avoid writing to durable storage when the update is minor compared to what is already stored: for example when the received `algorithm_validity_period` differs by at most one day (86400 seconds) from the value already associated with this cache entry, such as from small jitter or rounding.
 
+## Cache key and multiple ports
+
+Commitments are scoped per cache key (see {{cache-indexing}}), not to a DNS name alone. A client that connects to a different port reaches a distinct cache entry; no commitment applies there until one is observed on that connection. This is intentional: transport ports disambiguate independent services on the same name.
+
 ## Related threats
 
 This mechanism does not replace PKIX validation, name verification, or trust anchor policy; it adds downgrade protection once a legitimate commitment has been observed. Traditional certificate chains remain out of scope except where this document already requires rejection (see {{certificate-chain}}).
@@ -252,6 +260,10 @@ IANA is requested to assign a new value from the “TLS ExtensionType Values” 
 # Document History
 
 RFC Editor: please remove before publication.
+
+## draft-sheffer-tls-pqc-continuity-03
+
+* Cache key: transport port of the connection; per-port scope (#26, #28).
 
 ## draft-sheffer-tls-pqc-continuity-02
 

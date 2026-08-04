@@ -152,9 +152,9 @@ In the server's Certificate message, `pq_cert_available` MUST appear only in the
 
 ## Cache indexing {#cache-indexing}
 
-The client MUST key each cache entry by the authenticated TLS server identity from {{!RFC9525}}, the transport port of the TLS connection being set up, and whether the handshake is connection-oriented (TLS) or datagram (DTLS). Entries that differ in any of these MUST NOT be merged.
+The same DNS name can host independent TLS services on different ports, and a commitment cached for one cache entry does not apply to another.
 
-Rationale: The same DNS name can host independent TLS services on different ports. A commitment cached for one cache entry does not apply to another.
+The client MUST key each cache entry by the authenticated TLS server identity from {{!RFC9525}}, the transport port of the TLS connection being set up, and whether the handshake is connection-oriented (TLS) or datagram (DTLS). Entries that differ in any of these MUST NOT be merged.
 
 ## Algorithm Selection
 
@@ -294,7 +294,7 @@ Initial version.
 # Acknowledgments
 {:numbered="false"}
 
-Thanks to Eric Rescorla, Yaroslav Rosomakho, Muhammad Usama Sardar, and Scott Fluhrer for helpful discussion on the TLS mailing list.
+Thanks to Eric Rescorla, Yaroslav Rosomakho, Muhammad Usama Sardar, and Scott Fluhrer for helpful discussion on the TLS mailing list, and to Nazmus Salehin Sammo for detailed review comments.
 
 --- back
 

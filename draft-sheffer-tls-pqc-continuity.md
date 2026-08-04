@@ -152,7 +152,7 @@ In the server's Certificate message, `pq_cert_available` MUST appear only in the
 
 The client MUST key each cache entry by the authenticated TLS server identity from {{!RFC9525}}, the port, and whether the handshake is connection-oriented (TLS) or datagram (DTLS). Entries that differ in any of these MUST NOT be merged.
 
-## Algorithm Selection
+## Algorithm Selection {#algorithm-selection}
 
 If the client holds unexpired cached information for the server:
 
@@ -164,19 +164,18 @@ As a result, the handshake would fail if a rollback attack is attempted.
 
 ## Client behavior
 
-A client that supports this extension MUST behave as follows:
+A client that supports this extension MUST behave as follows. Updates to persistent cache state (including the commitment and information used for {{algorithm-selection}}) MUST be deferred until after the handshake completes successfully.
 
 1. If the client holds no cached information for the server, and the server includes a
 non-empty extension:
 
    * If the `algorithm_validity_period` is zero, the client MUST NOT cache the information.
-   * Otherwise, the client SHOULD cache the commitment after the handshake completes successfully.
-   * The client SHOULD record the server's actual signature algorithm for subsequent ClientHello `signature_algorithms` selection.
+   * Otherwise, the client SHOULD cache the commitment and the end-entity signature scheme observed on this connection.
    * The client MAY choose to cache for a shorter period than specified.
 
 2. If the client holds unexpired cached information for the server, and receives the extension from the server:
 
-   * If the `algorithm_validity_period` is zero, the client MUST clear the cached information for this server after the handshake completes successfully.
+   * If the `algorithm_validity_period` is zero, the client MUST clear the cached information for this server.
    * Otherwise, the client MUST apply {{certificate-chain}} and SHOULD extend its cache period if the
      received time value would expire later than its current cache expiry.
    * It SHOULD silently ignore an `algorithm_validity_period` value if it would decrease
@@ -255,7 +254,7 @@ RFC Editor: please remove before publication.
 
 ## draft-sheffer-tls-pqc-continuity-03
 
-* Client behavior rule 2: clear cache after handshake completes successfully (#27).
+* Client behavior: defer persistent cache updates until handshake completes (#27).
 
 ## draft-sheffer-tls-pqc-continuity-02
 

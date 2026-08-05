@@ -1050,7 +1050,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Sheffer &amp; Reddy</td>
-<td class="center">Expires 5 February 2027</td>
+<td class="center">Expires 6 February 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1063,12 +1063,12 @@ svg {
 <dd class="internet-draft">draft-sheffer-tls-pqc-continuity-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-08-04" class="published">4 August 2026</time>
+<time datetime="2026-08-05" class="published">5 August 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-02-05">5 February 2027</time></dd>
+<dd class="expires"><time datetime="2027-02-06">6 February 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1119,7 +1119,7 @@ traditional certificates to maintain compatibility with legacy clients. However,
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 5 February 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 6 February 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1380,7 +1380,7 @@ and is unrelated to any particular certificate or its lifecycle. A duration of z
             <p id="section-3.5-2.1.1">The client <span class="bcp14">MUST NOT</span> offer legacy-only values in <code>signature_algorithms</code>: it <span class="bcp14">MUST</span> include one or more PQC-capable schemes.<a href="#section-3.5-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.5-2.2">
-            <p id="section-3.5-2.2.1">It <span class="bcp14">SHOULD</span> include schemes consistent with enforcing the commitment, e.g. those it derived from the server's certificate on a prior connection or those it uses for this cache entry, all subject to local policy.<a href="#section-3.5-2.2.1" class="pilcrow">¶</a></p>
+            <p id="section-3.5-2.2.1">It <span class="bcp14">SHOULD</span> include schemes consistent with enforcing the commitment, e.g. those it derived from the server's certificate on a prior connection, all subject to local policy.<a href="#section-3.5-2.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.5-2.3">
             <p id="section-3.5-2.3.1">It <span class="bcp14">MAY</span> include additional PQC signature algorithms according to local policy.<a href="#section-3.5-2.3.1" class="pilcrow">¶</a></p>
@@ -1394,7 +1394,7 @@ and is unrelated to any particular certificate or its lifecycle. A duration of z
         <h3 id="name-client-behavior">
 <a href="#section-3.6" class="section-number selfRef">3.6. </a><a href="#name-client-behavior" class="section-name selfRef">Client behavior</a>
         </h3>
-<p id="section-3.6-1">A client that supports this extension <span class="bcp14">MUST</span> behave as follows. Updates to persistent cache state (including the commitment and information used for <a href="#algorithm-selection" class="auto internal xref">Section 3.5</a>) <span class="bcp14">MUST</span> be deferred until after the handshake completes successfully.<a href="#section-3.6-1" class="pilcrow">¶</a></p>
+<p id="section-3.6-1">A client that supports this extension <span class="bcp14">MUST</span> behave as follows. Updates to persistent cache state <span class="bcp14">MUST</span> be deferred until after the handshake completes successfully.<a href="#section-3.6-1" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-3.6-2">
 <li id="section-3.6-2.1">
             <p id="section-3.6-2.1.1">If the client holds no cached information for the server, and the server includes a
@@ -1404,7 +1404,7 @@ non-empty extension:<a href="#section-3.6-2.1.1" class="pilcrow">¶</a></p>
                 <p id="section-3.6-2.1.2.1.1">If the <code>algorithm_validity_period</code> is zero, the client <span class="bcp14">MUST NOT</span> cache the information.<a href="#section-3.6-2.1.2.1.1" class="pilcrow">¶</a></p>
 </li>
               <li class="normal" id="section-3.6-2.1.2.2">
-                <p id="section-3.6-2.1.2.2.1">Otherwise, the client <span class="bcp14">SHOULD</span> cache the commitment and the end-entity signature scheme observed on this connection.<a href="#section-3.6-2.1.2.2.1" class="pilcrow">¶</a></p>
+                <p id="section-3.6-2.1.2.2.1">Otherwise, the client <span class="bcp14">SHOULD</span> cache the commitment.<a href="#section-3.6-2.1.2.2.1" class="pilcrow">¶</a></p>
 </li>
               <li class="normal" id="section-3.6-2.1.2.3">
                 <p id="section-3.6-2.1.2.3.1">The client <span class="bcp14">MAY</span> choose to cache for a shorter period than specified.<a href="#section-3.6-2.1.2.3.1" class="pilcrow">¶</a></p>
@@ -1418,7 +1418,7 @@ non-empty extension:<a href="#section-3.6-2.1.1" class="pilcrow">¶</a></p>
                 <p id="section-3.6-2.2.2.1.1">If the <code>algorithm_validity_period</code> is zero, the client <span class="bcp14">MUST</span> clear the cached information for this server.<a href="#section-3.6-2.2.2.1.1" class="pilcrow">¶</a></p>
 </li>
               <li class="normal" id="section-3.6-2.2.2.2">
-                <p id="section-3.6-2.2.2.2.1">Otherwise, the client <span class="bcp14">MUST</span> apply <a href="#certificate-chain" class="auto internal xref">Section 3.2</a> and <span class="bcp14">SHOULD</span> extend its cache period if the
+                <p id="section-3.6-2.2.2.2.1">Otherwise, the client <span class="bcp14">SHOULD</span> extend its cache period if the
 received time value would expire later than its current cache expiry.<a href="#section-3.6-2.2.2.2.1" class="pilcrow">¶</a></p>
 </li>
               <li class="normal" id="section-3.6-2.2.2.3">
@@ -1433,6 +1433,7 @@ receives no extension from the server in the Certificate message, the client <sp
 modify its cache.<a href="#section-3.6-2.3.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
+<p id="section-3.6-3">While the client holds unexpired cached information for the server, it <span class="bcp14">MUST</span> apply <a href="#certificate-chain" class="auto internal xref">Section 3.2</a> on every handshake to that server, regardless of whether the server sends <code>pq_cert_available</code> or what <code>algorithm_validity_period</code> it sends.<a href="#section-3.6-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="server-behavior">

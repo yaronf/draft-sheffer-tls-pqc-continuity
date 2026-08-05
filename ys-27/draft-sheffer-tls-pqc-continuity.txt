@@ -5,8 +5,8 @@
 Transport Layer Security                                      Y. Sheffer
 Internet-Draft                                                    Intuit
 Intended status: Standards Track                                T. Reddy
-Expires: 5 February 2027                                           Nokia
-                                                           4 August 2026
+Expires: 6 February 2027                                           Nokia
+                                                           5 August 2026
 
 
  PQC Continuity: Downgrade Protection for TLS Servers Migrating to PQC
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 5 February 2027.
+   This Internet-Draft will expire on 6 February 2027.
 
 Copyright Notice
 
@@ -277,8 +277,7 @@ Table of Contents
 
    *  It SHOULD include schemes consistent with enforcing the
       commitment, e.g. those it derived from the server's certificate on
-      a prior connection or those it uses for this cache entry, all
-      subject to local policy.
+      a prior connection, all subject to local policy.
 
    *  It MAY include additional PQC signature algorithms according to
       local policy.
@@ -289,8 +288,7 @@ Table of Contents
 3.6.  Client behavior
 
    A client that supports this extension MUST behave as follows.
-   Updates to persistent cache state (including the commitment and
-   information used for Section 3.5) MUST be deferred until after the
+   Updates to persistent cache state MUST be deferred until after the
    handshake completes successfully.
 
    1.  If the client holds no cached information for the server, and the
@@ -299,8 +297,7 @@ Table of Contents
        *  If the algorithm_validity_period is zero, the client MUST NOT
           cache the information.
 
-       *  Otherwise, the client SHOULD cache the commitment and the end-
-          entity signature scheme observed on this connection.
+       *  Otherwise, the client SHOULD cache the commitment.
 
        *  The client MAY choose to cache for a shorter period than
           specified.
@@ -311,9 +308,9 @@ Table of Contents
        *  If the algorithm_validity_period is zero, the client MUST
           clear the cached information for this server.
 
-       *  Otherwise, the client MUST apply Section 3.2 and SHOULD extend
-          its cache period if the received time value would expire later
-          than its current cache expiry.
+       *  Otherwise, the client SHOULD extend its cache period if the
+          received time value would expire later than its current cache
+          expiry.
 
        *  It SHOULD silently ignore an algorithm_validity_period value
           if it would decrease its existing cached expiry.
@@ -321,6 +318,11 @@ Table of Contents
    3.  If the client holds unexpired cached information for the server,
        and receives no extension from the server in the Certificate
        message, the client SHOULD NOT modify its cache.
+
+   While the client holds unexpired cached information for the server,
+   it MUST apply Section 3.2 on every handshake to that server,
+   regardless of whether the server sends pq_cert_available or what
+   algorithm_validity_period it sends.
 
 3.7.  Server behavior
 

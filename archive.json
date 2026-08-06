@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-08-04T02:48:02.808326+00:00",
+  "timestamp": "2026-08-06T02:48:12.386745+00:00",
   "repo": "yaronf/draft-sheffer-tls-pqc-continuity",
   "labels": [
     {
@@ -374,9 +374,24 @@
       "labels": [],
       "body": "Thread by Ilari Liusvaara at https://mailarchive.ietf.org/arch/msg/tls/kjA1x3EzJote0yEJMB8PRVB5rIc/\n\n",
       "createdAt": "2026-06-09T19:32:42Z",
-      "updatedAt": "2026-06-09T19:32:42Z",
+      "updatedAt": "2026-08-05T15:05:54Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "yaronf",
+          "authorAssociation": "OWNER",
+          "body": "@ilaril \u2014 looping you in from the [TLS list thread](https://mailarchive.ietf.org/arch/msg/tls/kjA1x3EzJote0yEJMB8PRVB5rIc/).\n\nWe've been working through your PLANTS/MTC points and I think we're converging on the following:\n\n**Server-side (\"server only knows the EE key algorithm\"):** We agree this is real operationally, but we don't read it as a protocol gap. The extension is a *commitment*, not a proof that the presented chain is PQ-safe on the wire \u2014 analogous to HSTS not requiring the server to prove its HTTPS config is correct. Whether the operator can tell administratively that checkpoints/cosigners satisfy their PQ policy is an implementation/deployment matter.\n\n**Client-side (\"RP knows issuer algorithms\"):** We agree the relying party has what it needs to judge this, with respect to its configured trust policy: EE algorithm from the credential + `CertificateVerify`; issuer/checkpoint/cosigner algorithms from authenticated objects and trust-anchor configuration (same model as X.509 path validation, where the TA isn't transmitted).\n\n**Where we think draft work remains:** The current text is still X.509-centric (\"PQC end-entity certificate\", \"every `CertificateEntry`\u2026\"). For MTC (and cross-signing / multiple cosigners), we're leaning toward defining PQ-acceptability in terms of the **authentication path relative to the RP's trust policy** \u2014 roughly: there exists at least one accepted path in which every *required* public-key algorithm and every *required* signature is quantum-resistant (OR cosigners: one accepted PQ signature suffices; AND/k-of-n: every required signature must be PQ).\n\nNo `-03` text for this yet \u2014 tracking here until the open PRs (#32, #33, #31) land.",
+          "createdAt": "2026-08-05T13:01:18Z",
+          "updatedAt": "2026-08-05T13:01:18Z"
+        },
+        {
+          "author": "ilaril",
+          "authorAssociation": "NONE",
+          "body": "> **Server-side (\"server only knows the EE key algorithm\"):** We agree this is real operationally, but we don't read it as a protocol gap. The extension is a _commitment_, not a proof that the presented chain is PQ-safe on the wire \u2014 analogous to HSTS not requiring the server to prove its HTTPS config is correct. Whether the operator can tell administratively that checkpoints/cosigners satisfy their PQ policy is an implementation/deployment matter.\n\nThis is more analogous to HPKP than HSTS, as selecting wrong certificate (even if it would normally satisfy the RP) can trigger connection failure.\n\n~~The proper way to solve this issue would be to add information about if chain is PQ-safe to certificate properties (as TLS Authenticating Parties REALLY SHOULD NOT select MTC certificate without that being present).~~\n\nActually, the basic MTC case should work just fine if server requires trust anchor negotiation and ignores signature_algorithms_cert for MTC (which it REALLY SHOULD do). If there exists an acceptable choice, the trust anchor negotiation will converge to it.\n\n> **Client-side (\"RP knows issuer algorithms\"):** We agree the relying party has what it needs to judge this, with respect to its configured trust policy: EE algorithm from the credential + `CertificateVerify`; issuer/checkpoint/cosigner algorithms from authenticated objects and trust-anchor configuration (same model as X.509 path validation, where the TA isn't transmitted).\n\nFor MTC, the cosigner algorithms do not matter, only the issuer signature algorithm does.\n \n> **Where we think draft work remains:** The current text is still X.509-centric (\"PQC end-entity certificate\", \"every `CertificateEntry`\u2026\"). For MTC (and cross-signing / multiple cosigners), we're leaning toward defining PQ-acceptability in terms of the **authentication path relative to the RP's trust policy** \u2014 roughly: there exists at least one accepted path in which every _required_ public-key algorithm and every _required_ signature is quantum-resistant (OR cosigners: one accepted PQ signature suffices; AND/k-of-n: every required signature must be PQ).\n\nThe path formulation can be stated as follows:\n- The algorithm in CertificateVerify message is PQ, and\n- There is a path to a trust anchor via certificates where issuer signature is (or would be) PQ.\n\nThe \"would be\" above is for landmark-relative MTC certificates, which carry no signatures.\n\n> No `-03` text for this yet \u2014 tracking here until the open PRs ([#32](https://github.com/yaronf/draft-sheffer-tls-pqc-continuity/pull/32), [#33](https://github.com/yaronf/draft-sheffer-tls-pqc-continuity/pull/33), [#31](https://github.com/yaronf/draft-sheffer-tls-pqc-continuity/pull/31)) land.\n\n",
+          "createdAt": "2026-08-05T14:36:40Z",
+          "updatedAt": "2026-08-05T15:05:54Z"
+        }
+      ]
     },
     {
       "number": 24,
@@ -406,9 +421,17 @@
       "labels": [],
       "body": "Section 3.4 (L307-310) says the cache key must include \"the port\":\n\nThe client MUST key each cache entry by the authenticated TLS server identity from [RFC9525], the port, and whether the handshake is connection-oriented (TLS) or datagram (DTLS).\n\nThe text does not say which port this is. It could be the authority port from the URI. It could be the TCP port the client actually connected to. Most of the time these are the same, so the question never comes up.\n\nThey differ when an HTTPS RR carries a port SvcParam. The connection then goes to the port given in the SvcParam, while the origin and the RFC 9525 reference identity keep the authority port (RFC 9460 Section 9.1). The two readings then give opposite answers about whether a cached commitment applies to that connection.\n\nThis matters beyond tidiness. Under the connected-port reading, someone who can forge or influence an HTTPS RR can move a client to a different port of the same identity without changing the origin. The commitment lookup then misses. Under the authority-port reading the lookup hits and that path closes. I am filing a separate issue shortly about the scope of the cache key, and which of these two readings you intend decides whether that issue is reachable at all.\n\nIf the authority port is what you intend, here is suggested text:\n\n... the authority port of the URI (which may differ from the transport port when an HTTPS RR supplies a port SvcParam) ...\n\nI am happy to send a pull request if that is the reading you want.\n\nFiled by Nazmus Salehin Sammo, Melbourne Institute of Technology, Melbourne, Australia. Student ID MIT252100. Contact: MIT252100@stud.mit.edu.au",
       "createdAt": "2026-08-02T04:28:03Z",
-      "updatedAt": "2026-08-02T04:28:03Z",
+      "updatedAt": "2026-08-04T12:54:06Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "yaronf",
+          "authorAssociation": "OWNER",
+          "body": "Thanks for raising this \u2014 the text was indeed underspecified.\n\n**Intended reading:** \"the port\" is the **transport port of the TLS connection being set up** (the port the client actually connects to over TCP or UDP), not the authority port from a URI and not a field from an HTTPS RR.\n\nThis is a TLS-layer mechanism. For a typical TLS client, the cache key comes from the authenticated server identity (RFC 9525), the socket's transport port, and TLS vs DTLS. No HTTP or HTTPS RR is required to interpret the cache key.\n\nWe did **not** adopt the authority-port wording you suggested. Under our model, if a client is steered to a different transport port of the same identity, that is a **distinct cache entry** by design (see #28). A commitment observed on port 443 does not apply on port 8443 until one is observed there.\n\n\u00a73.4 now says explicitly: *\"the transport port of the TLS connection being set up.\"*\n\nAddressed in #32.",
+          "createdAt": "2026-08-04T12:54:06Z",
+          "updatedAt": "2026-08-04T12:54:06Z"
+        }
+      ]
     },
     {
       "number": 27,
@@ -422,9 +445,17 @@
       "labels": [],
       "body": "This is a question about Section 3.6 rule 2, with a short fix if the answer is what I think it is. I want to open with your own implementation, because it already answers this question and the draft does not.\n\nYour implementation already does the right thing\nIn the reference implementation, both the cache update and the cache delete are deferred to SSL_CB_HANDSHAKE_DONE, and are flushed only if SSL_get_verify_result() == X509_V_OK. The source comment explains exactly why:\n\nThe CT parse_cb fires during tls_process_server_certificate(), before ssl_verify_cert_chain() runs. We must not write the cache until we know the peer's certificate chain is trusted.\n\nThat is right. My concern is that none of it appears in the normative text. A second implementer who reads Section 3.6 rule 2 literally would be conformant, and would not do this.\n\nThe asymmetry in the text\nRule 1's caching bullet (L351-352) carries a timing condition:\n\nOtherwise, the client SHOULD cache the commitment after the handshake completes successfully.\n\nRule 2 fires on receipt (L361-362):\n\nIf the client holds unexpired cached information for the server, and receives the extension from the server:\nand its first bullet (L364-365) has no timing condition at all:\n\nIf the algorithm_validity_period is zero, the client MUST clear the cached information for this server.\nIn TLS 1.3 the Certificate message is necessarily parsed before the signature that authenticates it exists on the wire (RFC 8446 Section 4.4). So on a literal reading, the clear happens before CertificateVerify and before path validation. The handshake then fails, but the stored state is already gone.\n\nWhy I think the text allows both readings\nSection 4 (L421-426) says clients enforce \"until they observe zero on a completed handshake\". That points to the safe reading, but Section 4 is Operational Considerations and is not normative.\nSection 3.4's \"authenticated TLS server identity\" reads as a rule about how the key is composed, not as a timing condition. Section 4.1 says this directly: entries are keyed by authenticated server identity, \"not by a particular chain\".\nRule 3 (L374-376) already defends the strip version of this case. It says a client which \"receives no extension ... SHOULD NOT modify its cache\". So adversarial content on the clearing path was clearly considered. Injection of a zero value is the other half of that case, and it is not guarded.\nThe draft requires three other actions on this same message before authentication (Section 3.2, and Section 3.3 twice). All three of those fail closed. The clear is the only one that fails open, and the text does not separate the two kinds.\nRFC 8446 does not supply an ordering rule here. Section 4.4.2.4 imposes none.\nPrecedent in the model the draft names\nHSTS, which Section 1 and Section 3.7 name as the model, puts this gate in the processing rule rather than in the storage-key rule. RFC 6797 Section 8.1 requires a clean secure transport before any state change, and Section 14.3 gives a forged max-age=0 as the reason for that gate. RFC 7469 Section 2.3.1 does the same for pin deletion.\n\nI am not claiming a new attack. This condition has been in HSTS since 2012, and the draft says it is modelled on HSTS. My only observation is that the condition did not carry across into the normative text here.\n\nThe question\nSection 3.6 rule 2 fires when the client \"receives the extension from the server\", and its first bullet is a MUST to clear the cached commitment. Rule 1's caching bullet says \"after the handshake completes successfully\". Rule 2's clearing bullet says nothing. Is the clear meant to happen on receipt of the Certificate message, that is, before CertificateVerify and before path validation? Or only after the handshake completes?\n\nSuggested fix\nIf the algorithm_validity_period is zero, the client MUST clear the cached information for this server after the handshake completes successfully.\nThis lines rule 2 up with rule 1, with the existing non-normative wording in Section 4, and with what the reference implementation already does.\n\nOne piece of supporting data\nI looked at where seven TLS stacks parse and dispatch per-CertificateEntry extensions relative to chain validation. The stacks were OpenSSL, BoringSSL, NSS, rustls, Go, GnuTLS and wolfSSL. In all seven, dispatch happens before validation, and none of them has a hook that runs after validation. BoringSSL already ships trust_anchors, which is a per-CertificateEntry extension from draft-ietf-tls-trust-anchor-ids, and it sets client state on receipt at ssl/tls13_both.cc:325, in a state machine step earlier than ssl_verify_peer_cert.\n\nThis is not a claim that anything is broken today. Nothing implements this draft yet. It is why I think the deferral should be normative, rather than something each implementer has to work out again. In NSS in particular, deferring correctly is a two-part change that is not obvious: you stash the value in ss->xtnData, act after ssl3_AuthCertificate, and handle authCertificatePending separately.\n\nFiled by Nazmus Salehin Sammo, Melbourne Institute of Technology, Melbourne, Australia. Student ID MIT252100. Contact: MIT252100@stud.mit.edu.au",
       "createdAt": "2026-08-02T04:29:21Z",
-      "updatedAt": "2026-08-02T04:29:21Z",
+      "updatedAt": "2026-08-04T15:27:39Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "yaronf",
+          "authorAssociation": "OWNER",
+          "body": "Thanks \u2014 this is a fair read of the asymmetry between rule 1 and rule 2, and your reference to our POC behavior is correct.\n\n**Intended reading:** persistent cache updates (populate, clear, extend, and the signature-scheme information used for Algorithm Selection) are all meant to happen **after the handshake completes successfully**, matching rule 1's existing caching gate, the non-normative \u00a74 wording (\"zero on a completed handshake\"), and the HSTS-style \"clean secure transport before state change\" pattern you cite. Rule 2's clear-on-zero was the most obvious gap because it is a MUST that removes existing state; the same gate applies to the other cache writes in \u00a73.6.\n\n**Fix in #33:** a section-level MUST at the start of Client behavior:\n\n> Updates to persistent cache state (including the commitment and information used for Algorithm Selection) MUST be deferred until after the handshake completes successfully.\n\nIndividual bullets no longer repeat that phrase; fail-closed checks during the handshake ({{certificate-chain}}, malformed extension, wrong `CertificateEntry`) are unchanged.",
+          "createdAt": "2026-08-04T15:27:39Z",
+          "updatedAt": "2026-08-04T15:27:39Z"
+        }
+      ]
     },
     {
       "number": 28,
@@ -438,9 +469,17 @@
       "labels": [],
       "body": "This is a question about scope. I want to start by quoting Reddy's own review back, because I think it settles the principle, and it looks to me like it simply was not carried through to the port.\n\nThe argument already made, about ALPN\nIn PR #20 (2026-04-30), reviewing a proposal to include ALPN in the cache key:\n\nThe commitment is made by the server identity, not by the application protocol. A server that commits to PQC is committing at the server level, not per-ALPN. So including ALPN in the cache key would actually weaken the protection, a client connecting with a different ALPN would not benefit from the cached commitment and would be unprotected.\n\nYaron agreed, saying \"You are right about ALPN ... Removing that text\", and commit 8f600da removed it the same day.\n\nI think that argument applies word for word to the port. A server that commits to PQC is committing at the server level, not per port. A client connecting on a different port would not benefit from the cached commitment and would be unprotected.\n\nWhy the port looks like the same case\nThe guarantee is stated at the level of the server. Section 1:\n\nClients reconnecting to an already known server within the validity period are protected from rollback to classical certificates.\n\nThe server's own obligation in Section 3.7, to use a PQC certificate \"for that entire duration\", carries no port qualifier. But Section 3.4 (L307-310) makes the client enforce at a narrower scope:\n\nThe client MUST key each cache entry by the authenticated TLS server identity from [RFC9525], the port, and whether the handshake is connection-oriented (TLS) or datagram (DTLS). Entries that differ in any of these MUST NOT be merged.\n\nSo the client enforces something narrower than the server has committed to. Someone who can steer one connection to a different port of the same authenticated identity reaches a cache miss and an unenforced handshake, while a valid commitment for that identity sits unexpired in the client's store. A forged HTTPS RR carrying a port SvcParam is enough, and per RFC 9460 Section 9.1 that does not change the origin.\n\nWhat I am not claiming\nThis is not a bypass of a commitment that is in force. Under Section 3.4 no commitment is in force for the key that gets used. The mechanism does exactly what it says. I want to be clear about that, because it would be easy to overstate.\n\nBut I do not think it is the trust-on-first-use limitation that Section 5.1 documents either. A trust-on-first-use window is temporary. It happens once, and it closes as soon as the client makes an honest connection. Section 5.1's stated reason for accepting that limitation depends on exactly that self-healing behaviour:\n\nif cache population is suppressed, the client would realize that the server is PQC-capable as soon as it connects directly to the server\n\nThat does not hold per port. The client will never connect honestly to those other ports, so those windows never close.\n\nThe HSTS comparison\nSection 1 and Section 3.7 name HSTS as the model, and HSTS deliberately went the other way. It matches on the host component alone (RFC 6797 Section 8.3 step 1). It states that the policy \"applies to HTTP over any TCP port of an HSTS Host\" (Section 8.3). It makes that non-negotiable, saying \"Hosts are unable to affect this aspect of HSTS Policy\" (Appendix B). And it grounds the choice in the published argument against finer-grained origins (Section 2.1).\n\nEvery other part of the chain is also port-blind: the RFC 9525 reference identity, the certificate itself, and the cookie jar (RFC 6265 Section 8.5). The commitment appears to be the only port-scoped element.\n\nI also note the direction of travel. The text originally keyed entries to the server identity alone. The port was added in commit 27ca7a1 (2026-04-17). Issue #13 is the only place I can find where the key is discussed, and it gives a DTLS disambiguation reason for the transport component and no reason at all for the port.\n\nSeparately, I have filed a question about which port Section 3.4 means, the authority port or the connected port (see #26 ). Which of those you intend decides whether the path described above is reachable.\n\nRelated but different\nAt IETF-126 (TLS session A, Meetecho chat log, 2026-07-23) Martin Thomson raised concerns about this cache key, saying it \"won't work for browsers\" and that \"This sort of thing fails in multi-CDN deployments where the transition to PQ might not be uniform across the scope that the cache key identifies\". That is a different concern from mine and it does not mention the port. I mention it only to make clear that I am not re-raising it.\n\nThe questions\nSection 3.4 requires the cache key to include the port. Section 3.7 requires the server to present a PQC certificate \"for that entire duration\", with no port qualifier. Is the client meant to enforce a narrower scope than the server has committed to? Was the difference from HSTS intended? If it was, should Section 5 state the downgrade consequence?\nShould host scoping be required for clients whose identities come from URIs, with port scoping kept only where a deployment really does run independent services on different ports?\nFiled by Nazmus Salehin Sammo, Melbourne Institute of Technology, Melbourne, Australia. Student ID MIT252100. Contact: MIT252100@stud.mit.edu.au",
       "createdAt": "2026-08-02T04:30:54Z",
-      "updatedAt": "2026-08-02T04:39:34Z",
+      "updatedAt": "2026-08-04T12:54:07Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "yaronf",
+          "authorAssociation": "OWNER",
+          "body": "Thanks for the careful analysis, and for connecting this to the ALPN discussion in PR #20.\n\nWe agree the intro's informal \"server\" language could be read as host-wide scope. That was not the intent.\n\n**Our model:**\n\n- The same DNS name can host **independent TLS services** on different ports (443, 993, 8443, etc.). Port in the cache key is **intentional** \u2014 it disambiguates those endpoints, similar in spirit to why we kept TLS vs DTLS in the key.\n- The ALPN argument from PR #20 does **not** carry over: ALPN selects application protocol *within* one TLS connection; transport port selects *which TLS service* on a name. A commitment on one port is not meant to protect a different service on another port that never sent the extension.\n- This is **not** the HSTS host-wide model. HSTS is HTTP-layer and origin-centric; this extension is bound to the TLS connection where `pq_cert_available` appears. Per-port scope is deliberate, not an oversight relative to \u00a73.7.\n\n\u00a73.4, a new \u00a75 subsection (\"Cache key and multiple ports\"), and intro text now state that protection on reconnect applies per **service endpoint** (cache key), not DNS name alone. A client connecting on a different port reaches a distinct entry; no commitment applies there until one is observed on that connection.\n\nWe do not plan to require host-wide enforcement for URI-derived identities. \u00a75 documents the per-port consequence explicitly.\n\nRelated: #26 clarifies which port is meant (transport port of the connection).\n\nAddressed in #32.",
+          "createdAt": "2026-08-04T12:54:07Z",
+          "updatedAt": "2026-08-04T12:54:07Z"
+        }
+      ]
     },
     {
       "number": 29,
@@ -454,9 +493,17 @@
       "labels": [],
       "body": "\nThe draft does not say anything about session resumption, and I think it needs to. All of the\nenforcement is anchored on a message that a resumed handshake does not carry. RFC 8672 Section 2\nhandled this explicitly for the earlier mechanism, so there is a ready precedent to follow.\n\n### The gap\n\nEnforcement in Section 3.2 (L242-250) is stated over the `Certificate` message:\n\n> ... the client MUST apply its PQC policy to **every CertificateEntry in the server's Certificate\n> message** using the same criterion as in Section 3.1. If any CertificateEntry does not satisfy this\n> requirement, the client MUST abort the handshake with a certificate_unknown alert.\n\nRFC 8446 Section 4.4.2 says:\n\n> The server MUST send a Certificate message whenever the agreed-upon key exchange method uses\n> certificates for authentication (this includes all key exchange methods defined in this document\n> **except PSK**).\n\nand Section 2.2 describes the resumption flow directly:\n\n> As the server is authenticating via a PSK, it does not send a Certificate or a CertificateVerify\n> message.\n\nSo on a resumed handshake the trigger fires, because the client holds an unexpired commitment, but the\nobligation applies to an empty set. The MUST is satisfied with nothing to check, and the MUST-abort\ncannot fire. A conformant client has no normative basis to abort. It simply continues.\n\nThe same is true of the other enforcement points:\n\n* Section 3.5 (L328-329) states the consequence: \"As a result, the handshake would fail if a rollback\n  attack is attempted.\" But `signature_algorithms` governs `CertificateVerify` (RFC 8446\n  Section 4.2.3), and a resumed handshake has none, so this consequence does not hold in PSK mode.\n* All three branches of Section 3.6 depend on receiving, or not receiving, the extension in the\n  `Certificate` message. So none of them runs.\n\nThe draft contains no occurrence of `resumption`, `PSK`, `pre_shared_key`, `NewSessionTicket`,\n`ticket`, `0-RTT` or `early data`.\n\n### Visible independently in a second stack\n\nGo's `crypto/tls` makes the same structure explicit in source. `readServerCertificate`\n(`handshake_client_tls13.go:595-606`) returns before reading any `Certificate` message when a PSK is\nin use:\n\n```go\n// Either a PSK or a certificate is always used, but not both.\n// See RFC 8446, Section 4.1.1.\nif hs.usingPSK {\n    // Make sure the connection is still being verified whether or not this\n    // is a resumption. Resumptions currently don't reverify certificates so\n    // they don't call verifyServerCertificate. See Issue 31641.\n    ...\n    return nil\n}\n```\n\nAny check an implementer attaches to the `Certificate` message is simply never reached on that path.\n\n### Confirmed on a real stack\n\nOpenSSL 3.6.2 with a genuine ML-DSA-65 chain, where the CA signature, the end-entity signature and the\nend-entity subject public key are all ML-DSA-65:\n\n| | Full handshake | Resumed (PSK) |\n|---|---|---|\n| session status | `New, TLSv1.3` | **`Reused, TLSv1.3`** |\n| `Certificate` messages | 1 | **0** |\n| `CertificateVerify` messages | 1 | **0** |\n| `Finished` messages | 2 | 2 |\n\nThe resumed handshake completed successfully while carrying zero `Certificate` and zero\n`CertificateVerify` messages. So this is a property of the specification, not of any attacker. A client\nholding an unexpired PQ commitment can complete a session whose underlying authentication was\nclassical, and never consult the commitment. A PQ handshake does still issue resumable tickets, so this\nis not moot for PQ deployments. A server running with tickets disabled is unaffected, but ticket\nissuance is on by default.\n\n### Why the RFC 8672 reasoning does not carry over unchanged\n\nRFC 8672 Section 2 (Sheffer and Migault), covering the same TLS-layer pinning pattern:\n\n> With TLS 1.3, session resumption is based on a Pre-Shared Key (PSK). This is orthogonal to this\n> protocol. ... However, the protocol described in this document addresses the problem of misissued\n> certificates. Thus, it is not expected to be used outside a certificate-based TLS key exchange, such\n> as in PSK. **As a result, PSK handshakes MUST NOT include the extension defined here.**\n\nThe \"orthogonal\" conclusion rested on the threat model. Against misissuance, an attacker holding a\nbogus certificate still cannot get a PSK without completing a handshake. Against the attacker this\ndraft names in Section 1, one holding an undisclosed CRQC, that no longer holds. Such an attacker can\nbreak the ECDHE of a session it observes and derive the resumption PSK. The threat model changed, and\nthe exemption did not follow it into this draft.\n\n### Bounding the impact honestly\n\nI want to be careful not to overstate this, so I will state the limits myself.\n\n* This is not a harvest-now, decrypt-later attack. RFC 8446 Section 4.6.1 caps ticket lifetime:\n  \"Servers MUST NOT use any value greater than 604800 seconds (7 days) ... Clients MUST NOT cache\n  tickets for longer than 7 days, regardless of the ticket_lifetime\". A CRQC that arrives years after a\n  recording is useless against that ticket, because the client discarded the PSK long before. The\n  attacker has to already hold a CRQC and act inside the ticket window. That is still exactly the\n  attacker in Section 1, described there as one where \"a CRQC may remain undisclosed, allowing\n  attackers to exploit classical algorithms secretly\". But it is a narrower window than a recording\n  attack.\n* It is not indefinitely extensible. Tickets minted by an impersonating attacker are that attacker's\n  own, so extending requires continuous presence, not a single break.\n* The mechanism is not new. RFC 8446 Section 4.6.1 flags the general hazard, that resumption chains can\n  \"indefinitely extend the lifetime of the keying material originally derived from an initial non-PSK\n  handshake (which was most likely tied to the peer's certificate)\", and it recommends limits on total\n  keying-material lifetime. My point is only that this draft neither cites that nor says anything about\n  resumption.\n\nEven setting the attacker aside completely, the specification gap stands on its own. A document that\nstates a lasting cross-connection guarantee should say what happens in the handshake mode where its\nenforcement points do not exist.\n\n### Possible fixes, least invasive first\n\n1. **Security Considerations only.** Add a subsection saying that resumption skips enforcement because\n   there is no `Certificate` message, as RFC 8672 Section 2 did. This closes the silence with no\n   normative change.\n2. **Follow the RFC 8672 precedent, normatively.** State that a client holding an unexpired commitment\n   MUST NOT resume via PSK to that server, unless the PSK comes from a handshake that itself satisfied\n   the commitment. In other words, tie enforcement to the handshake the ticket came from.\n3. **Stronger.** Also require clients to record the credential class of the handshake that established\n   each PSK, refuse resumption where that class is classical while a commitment is in force, and bound\n   total keying-material lifetime per RFC 8446 Section 4.6.1.\n\nOption 1 on its own would be a real improvement. I have no strong view between 2 and 3.\n\n### Supporting model, optional reading\n\nI have a Tamarin model of PSK provenance, which records the credential class of the handshake that\nestablished each ticket. It falsifies commitment binding when resumption is unguarded, and verifies it\nwhen a committed client resumes only PSKs of PQ origin. It is a model of the Section 3.2 and\nSection 3.6 client state machine, not a security proof of TLS 1.3. The OpenSSL result above is the\nstronger evidence. I am happy to share either.\n\n### Context\n\nI am an MRes student doing formal analysis of the PQ authentication negotiation drafts. I have read\n`-02` in full, along with the tracker (all issues, `state=all`) and the list threads. This is separate\nfrom issue #23.\n\nFiled by Nazmus Salehin Sammo, Melbourne Institute of Technology, Melbourne, Australia.\nStudent ID MIT252100. Contact: MIT252100@stud.mit.edu.au",
       "createdAt": "2026-08-02T04:33:34Z",
-      "updatedAt": "2026-08-02T04:33:34Z",
+      "updatedAt": "2026-08-04T10:53:21Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "yaronf",
+          "authorAssociation": "OWNER",
+          "body": "Thanks for the detailed analysis \u2014 it helped us see where the text needed to be explicit.\n\nWe agree the draft was silent on session resumption and should say so. We do **not** read this as a protocol gap of the kind your CRQC+PSK scenario describes.\n\n**Our model:** Commitment and enforcement apply to **full, certificate-based handshakes** \u2014 the only path where a `Certificate` message and `pq_cert_available` appear. PSK resumption does not re-negotiate certificates; it continues under the session established when the ticket was minted. The \u00a73.2 / \u00a73.6 rules are therefore inert on PSK-only resumption by design.\n\n**Scope clarification:** This document addresses CRQC threats to **server authentication** \u2014 undetected rollback from PQ to classical **certificates** while a MitM can forge classical signatures. It does not address breaking key exchange to decrypt past sessions. Deployments are assumed to negotiate post-quantum or hybrid key exchange for handshake key agreement (specified elsewhere). Under that assumption, a CRQC that appears after a session was established cannot retroactively break the key agreement; deriving a resumption PSK by breaking classical key exchange on a recorded handshake is a **key-agreement** threat, not a certificate rollback threat, and is out of scope here.\n\nUpdates are in PR #31, which adds:\n\n- **\u00a73.x Session resumption** \u2014 certificate-based requirements apply only when the server sends a `Certificate` message.\n- **\u00a75.x Session resumption and ticket lifetime** \u2014 inherited authentication, no credential re-evaluation on PSK resume, ticket lifetime bounded per RFC 8446 \u00a74.6.1, and the key-agreement vs. authentication scope note above.\n- **Introduction** \u2014 explicit authentication-only CRQC scope and PQ/hybrid key-exchange assumption.\n\nWe are not proposing normative rules to forbid PSK resume while a commitment is cached (your options 2/3). If the WG wants that, we can revisit.\n\nWe appreciate the OpenSSL trace and stack survey \u2014 useful context for the clarification.",
+          "createdAt": "2026-08-04T10:53:21Z",
+          "updatedAt": "2026-08-04T10:53:21Z"
+        }
+      ]
     }
   ],
   "pulls": [
@@ -1015,7 +1062,7 @@
       "labels": [],
       "body": "## Summary\n- Add the `DTLS-Only` column to the TLS ExtensionType Values registration table, per IANA early review (closes #24).\n- Set `DTLS-Only` to **N** because `pq_cert_available` applies to both TLS and DTLS (see cache indexing).\n- Document the change under `-03` in Document History.\n\n## Test plan\n- [x] `make` (kramdown-rfc, xml2rfc-txt, xml2rfc-html) passes\n- [ ] Review IANA table against https://www.iana.org/assignments/tls-extensiontype-values\n\n\nMade with [Cursor](https://cursor.com)",
       "createdAt": "2026-07-27T13:51:48Z",
-      "updatedAt": "2026-07-27T13:51:48Z",
+      "updatedAt": "2026-08-05T13:15:16Z",
       "baseRepository": "yaronf/draft-sheffer-tls-pqc-continuity",
       "baseRefName": "main",
       "baseRefOid": "74be2f237659b8f96df8caf5226277bb76e25b90",
@@ -1027,6 +1074,148 @@
       "mergedBy": null,
       "mergeCommit": null,
       "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 30,
+      "id": "PR_kwDOP3oGhM76e6S6",
+      "title": "Clarify PSK resumption scope (#29)",
+      "url": "https://github.com/yaronf/draft-sheffer-tls-pqc-continuity/pull/30",
+      "state": "CLOSED",
+      "author": "yaronf",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "## Summary\n- Add \u00a73.x **Session resumption**: certificate-based requirements (certificate chain, Algorithm Selection, Client behavior) apply only when the server sends a `Certificate` message; PSK-only resumption (RFC 8446 \u00a72.2) relies on the full handshake that minted the PSK.\n- Add **Security Considerations: Session resumption**: inherited authentication, no re-evaluation of credentials on PSK resume, ticket lifetime bounded per RFC 8446 \u00a74.6.1.\n- Document History entry for `-03`.\n\nCloses #29.\n\n## Test plan\n- [ ] `make`\n- [ ] Review wording against issue #29 thread\n\n\nMade with [Cursor](https://cursor.com)",
+      "createdAt": "2026-08-04T10:27:51Z",
+      "updatedAt": "2026-08-04T10:29:26Z",
+      "baseRepository": "yaronf/draft-sheffer-tls-pqc-continuity",
+      "baseRefName": "main",
+      "baseRefOid": "74be2f237659b8f96df8caf5226277bb76e25b90",
+      "headRepository": "yaronf/draft-sheffer-tls-pqc-continuity",
+      "headRefName": "ys-29",
+      "headRefOid": "f7eaec41ef23bdcdfd799ab80edef404b87f794f",
+      "closedAt": "2026-08-04T10:29:19Z",
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "yaronf",
+          "authorAssociation": "OWNER",
+          "body": "Closing to allow in-editor review before resubmitting.",
+          "createdAt": "2026-08-04T10:29:18Z",
+          "updatedAt": "2026-08-04T10:29:18Z"
+        }
+      ],
+      "reviews": []
+    },
+    {
+      "number": 31,
+      "id": "PR_kwDOP3oGhM76fTkq",
+      "title": "Clarify PSK resumption scope (#29)",
+      "url": "https://github.com/yaronf/draft-sheffer-tls-pqc-continuity/pull/31",
+      "state": "OPEN",
+      "author": "yaronf",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "## Summary\r\n- Add \u00a73.x **Session resumption**: certificate-based requirements apply only when the server sends a `Certificate` message; PSK-only resumption relies on the full handshake that minted the PSK.\r\n- Add **Security Considerations: Session resumption and ticket lifetime**: inherited authentication, no credential re-evaluation on PSK resume, ticket lifetime bounded per RFC 8446 \u00a74.6.1.\r\n- Document History entry for `-03`.\r\n\r\nCloses #29.",
+      "createdAt": "2026-08-04T10:40:01Z",
+      "updatedAt": "2026-08-04T10:54:07Z",
+      "baseRepository": "yaronf/draft-sheffer-tls-pqc-continuity",
+      "baseRefName": "main",
+      "baseRefOid": "74be2f237659b8f96df8caf5226277bb76e25b90",
+      "headRepository": "yaronf/draft-sheffer-tls-pqc-continuity",
+      "headRefName": "ys-29",
+      "headRefOid": "00b4bbe10bd66d637be2b12d1512095a437980aa",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 32,
+      "id": "PR_kwDOP3oGhM76jAfw",
+      "title": "Clarify cache key transport port and per-port scope (#26, #28)",
+      "url": "https://github.com/yaronf/draft-sheffer-tls-pqc-continuity/pull/32",
+      "state": "OPEN",
+      "author": "yaronf",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "## Summary\n\n- Clarify that the port in the cache key is the **transport port of the TLS connection being set up** (#26), not a URI authority port or HTTPS RR field.\n- Document that protection is scoped per **service endpoint** (cache key), not DNS name alone (#28).\n- Add \u00a75 subsection on cache key and multiple ports; update intro and \u00a73.4 cache indexing.\n\n## Test plan\n\n- [x] `make` succeeds\n- [ ] Review rendered HTML for wording and cross-references\n\nFixes #26\nFixes #28\n\n\nMade with [Cursor](https://cursor.com)",
+      "createdAt": "2026-08-04T12:47:27Z",
+      "updatedAt": "2026-08-05T14:53:50Z",
+      "baseRepository": "yaronf/draft-sheffer-tls-pqc-continuity",
+      "baseRefName": "main",
+      "baseRefOid": "74be2f237659b8f96df8caf5226277bb76e25b90",
+      "headRepository": "yaronf/draft-sheffer-tls-pqc-continuity",
+      "headRefName": "ys-26",
+      "headRefOid": "0ee8c77cb0b786e46647e9726af13c1462e1f855",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "ilaril",
+          "authorAssociation": "NONE",
+          "body": "It seems to me that the cache key should be the connection reference name and port.\r\n\r\nTCP and UDP (and seqpacket) are separate port number spaces. I am not aware of anything that supports TLS and DTLS on the same port (stuff that supports multiple services on the same reference name and port yes). ",
+          "createdAt": "2026-08-05T14:53:50Z",
+          "updatedAt": "2026-08-05T14:53:50Z"
+        }
+      ],
+      "reviews": []
+    },
+    {
+      "number": 33,
+      "id": "PR_kwDOP3oGhM76jPcH",
+      "title": "Defer persistent cache updates until handshake succeeds (#27)",
+      "url": "https://github.com/yaronf/draft-sheffer-tls-pqc-continuity/pull/33",
+      "state": "OPEN",
+      "author": "yaronf",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "## Summary\n\n- \u00a73.6 Client behavior: add a section-level MUST that **all persistent cache updates** (commitment, clear, extend, and information used for Algorithm Selection) are deferred until **after the handshake completes successfully** \u2014 addressing #27 and aligning with the reference implementation.\n- Merge signature-scheme storage into the cache bullet; remove the separate \"record signature algorithm\" bullet.\n- Add `{#algorithm-selection}` cross-reference.\n\n## Test plan\n\n- [x] `make` succeeds\n- [ ] Review symmetry with \u00a74 operational text\n\nFixes #27",
+      "createdAt": "2026-08-04T12:54:37Z",
+      "updatedAt": "2026-08-05T16:51:29Z",
+      "baseRepository": "yaronf/draft-sheffer-tls-pqc-continuity",
+      "baseRefName": "main",
+      "baseRefOid": "74be2f237659b8f96df8caf5226277bb76e25b90",
+      "headRepository": "yaronf/draft-sheffer-tls-pqc-continuity",
+      "headRefName": "ys-27",
+      "headRefOid": "f6d3376875bef09c988b4f7177ed47fa17da973e",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "yaronf",
+          "authorAssociation": "OWNER",
+          "body": "Closing for now: reviewing whether other Client behavior rules need the same handshake-completion gate before reopening.",
+          "createdAt": "2026-08-04T12:57:03Z",
+          "updatedAt": "2026-08-04T12:57:03Z"
+        },
+        {
+          "author": "ilaril",
+          "authorAssociation": "NONE",
+          "body": "What is the cached signature algorithm used for? signature_algorithms and signature_algorithms_cert are supposed to cover all acceptable algorithms, and this is AFAIK security-critical.\r\n\r\nThe only case I can recall offhand where caching algorithms makes sense is optimistic key shares (send share for group used in last successful handshake in 1st client hello).\r\n\r\nAnd this PR does not seem to fix the issue. The steps given do not apply chain restrictions if cache is to be cleared, which is just wrong (not committing the clear until handshake completion will not help).\r\n\r\nThe client needs to always apply chain restrictions if there is an unexpired cached entry for the server, regardless of if the extension is present, or what the validity period is. And all cache updates (outside expiry) must only be done after successful handshake.\r\n\r\n",
+          "createdAt": "2026-08-05T15:12:46Z",
+          "updatedAt": "2026-08-05T15:32:38Z"
+        },
+        {
+          "author": "yaronf",
+          "authorAssociation": "OWNER",
+          "body": "@ilaril Thanks \u2014 pushed updates.\n\n- Dropped cached signature scheme (leftover from earlier draft versions that carried `SignatureScheme` on the wire); rule 1 caches the commitment only.\n- {{certificate-chain}} is now an explicit MUST after rules 1\u20133: applies on every handshake while cache is unexpired, regardless of extension presence or `algorithm_validity_period`. Removed from rule 2's non-zero branch.\n- Cache updates still deferred until successful handshake completion.",
+          "createdAt": "2026-08-05T16:51:29Z",
+          "updatedAt": "2026-08-05T16:51:29Z"
+        }
+      ],
       "reviews": []
     }
   ]
